@@ -35,15 +35,10 @@ class App {
   async route() {
     const hash = window.location.hash || '#/';
     const path = hash.replace('#', '');
-
     const publicRoutes = ['/', '/login', '/register'];
 
-    if (!this.user && !publicRoutes.includes(path)) {
-      return this.navigate('#/login');
-    }
-    if (this.user && (path === '/login' || path === '/register' || path === '/')) {
-      return this.navigate('#/dashboard');
-    }
+    if (!this.user && !publicRoutes.includes(path)) return this.navigate('#/login');
+    if (this.user && (path === '/login' || path === '/register' || path === '/')) return this.navigate('#/dashboard');
 
     const appEl = document.getElementById('app');
 
@@ -68,6 +63,7 @@ class App {
       case '/admin/workers': await this.renderManageWorkers(); break;
       case '/admin/customers': await this.renderManageCustomers(); break;
       case '/admin/bookings': await this.renderAllBookings(); break;
+      case '/admin/services': await this.renderManageServices(); break;
       default: this.navigate('#/dashboard');
     }
   }
@@ -76,7 +72,6 @@ class App {
   renderLanding() {
     return `
     <div class="landing-page">
-      <!-- NAVBAR -->
       <nav class="landing-nav" id="landing-nav">
         <div class="landing-container nav-inner">
           <a class="nav-brand" onclick="app.navigate('#/')">
@@ -99,8 +94,6 @@ class App {
           </div>
         </div>
       </nav>
-
-      <!-- HERO -->
       <section class="hero-section">
         <div class="hero-particles">
           <div class="particle p1"></div><div class="particle p2"></div>
@@ -154,56 +147,27 @@ class App {
         </div>
         <div class="hero-wave"><svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M0,60 C360,120 720,0 1080,60 C1260,90 1380,60 1440,60 L1440,120 L0,120 Z" fill="var(--bg-primary)"/></svg></div>
       </section>
-
-      <!-- LOGOS -->
       <section class="logos-section"><div class="landing-container"><p class="logos-label">Trusted by professionals and businesses worldwide</p><div class="logos-row"><div class="logo-item">🏢 PropertyMax</div><div class="logo-item">🏨 HotelGroup</div><div class="logo-item">🏠 HomeBliss</div><div class="logo-item">🏗️ UrbanNest</div><div class="logo-item">🏘️ ClearView</div></div></div></section>
-
-      <!-- FEATURES -->
       <section class="features-section" id="features-section"><div class="landing-container"><div class="section-label animate-on-scroll">Why CleanerPro</div><h2 class="section-title animate-on-scroll">Everything You Need in <span class="hero-gradient">One Platform</span></h2><p class="section-subtitle animate-on-scroll">A powerful marketplace connecting customers with professional cleaners.</p><div class="features-grid"><div class="feature-card animate-on-scroll"><div class="feature-icon-wrap blue"><span>🔍</span></div><h3>Smart Worker Discovery</h3><p>Find vetted professionals nearby using GPS-powered search.</p></div><div class="feature-card animate-on-scroll"><div class="feature-icon-wrap green"><span>📅</span></div><h3>Instant Booking</h3><p>Book services in seconds with our streamlined flow.</p></div><div class="feature-card animate-on-scroll"><div class="feature-icon-wrap violet"><span>📊</span></div><h3>Real-Time Tracking</h3><p>Track every booking from request to completion.</p></div><div class="feature-card animate-on-scroll"><div class="feature-icon-wrap yellow"><span>💳</span></div><h3>Secure Payments</h3><p>Multiple payment options, all encrypted and secure.</p></div><div class="feature-card animate-on-scroll"><div class="feature-icon-wrap cyan"><span>⭐</span></div><h3>Reviews & Ratings</h3><p>Make informed decisions with genuine customer reviews.</p></div><div class="feature-card animate-on-scroll"><div class="feature-icon-wrap red"><span>🔔</span></div><h3>Smart Notifications</h3><p>Never miss an update with real-time alerts.</p></div></div></div></section>
-
-      <!-- HOW IT WORKS -->
       <section class="how-section" id="how-section"><div class="landing-container"><div class="section-label animate-on-scroll">Simple Process</div><h2 class="section-title animate-on-scroll">How It Works in <span class="hero-gradient">3 Easy Steps</span></h2><p class="section-subtitle animate-on-scroll">Getting your space cleaned has never been this simple.</p><div class="steps-row"><div class="step-card animate-on-scroll"><div class="step-number">01</div><div class="step-icon">📝</div><h3>Create Your Account</h3><p>Sign up in seconds as a customer or cleaning professional.</p></div><div class="step-connector animate-on-scroll"><div class="step-line"></div><div class="step-arrow">→</div></div><div class="step-card animate-on-scroll"><div class="step-number">02</div><div class="step-icon">🔍</div><h3>Find & Book</h3><p>Browse services, find top-rated workers near you, and book instantly.</p></div><div class="step-connector animate-on-scroll"><div class="step-line"></div><div class="step-arrow">→</div></div><div class="step-card animate-on-scroll"><div class="step-number">03</div><div class="step-icon">✨</div><h3>Enjoy & Review</h3><p>Sit back while our professionals work their magic.</p></div></div></div></section>
-
-      <!-- SERVICES PREVIEW -->
       <section class="services-preview-section" id="services-section"><div class="landing-container"><div class="section-label animate-on-scroll">Our Services</div><h2 class="section-title animate-on-scroll">Professional Cleaning for <span class="hero-gradient">Every Need</span></h2><div class="services-preview-grid"><div class="service-preview-card animate-on-scroll"><div class="spc-icon">🏠</div><h3>House Cleaning</h3><p>Complete home cleaning including all rooms.</p><div class="spc-price">From <strong>₹1,500</strong></div></div><div class="service-preview-card animate-on-scroll"><div class="spc-icon">🧽</div><h3>Deep Cleaning</h3><p>Thorough top-to-bottom cleaning.</p><div class="spc-price">From <strong>₹3,500</strong></div></div><div class="service-preview-card animate-on-scroll"><div class="spc-icon">🪟</div><h3>Window Cleaning</h3><p>Crystal-clear windows inside and out.</p><div class="spc-price">From <strong>₹1,000</strong></div></div><div class="service-preview-card animate-on-scroll"><div class="spc-icon">🏢</div><h3>Office Cleaning</h3><p>Keep your workspace pristine.</p><div class="spc-price">From <strong>₹2,000</strong></div></div><div class="service-preview-card animate-on-scroll"><div class="spc-icon">🧹</div><h3>Move-In/Out Clean</h3><p>Bond-back guarantee.</p><div class="spc-price">From <strong>₹4,000</strong></div></div><div class="service-preview-card animate-on-scroll"><div class="spc-icon">🛋️</div><h3>Carpet & Upholstery</h3><p>Professional steam cleaning.</p><div class="spc-price">From <strong>₹1,200</strong></div></div></div><div style="text-align:center;margin-top:2.5rem" class="animate-on-scroll"><button class="btn btn-primary btn-lg" onclick="app.navigate('#/register')">Browse All Services →</button></div></div></section>
-
-      <!-- STATS -->
       <section class="landing-stats-section"><div class="landing-container"><div class="landing-stats-grid"><div class="landing-stat animate-on-scroll"><div class="landing-stat-value">2,500+</div><div class="landing-stat-label">Happy Customers</div></div><div class="landing-stat animate-on-scroll"><div class="landing-stat-value">500+</div><div class="landing-stat-label">Verified Workers</div></div><div class="landing-stat animate-on-scroll"><div class="landing-stat-value">10,000+</div><div class="landing-stat-label">Jobs Completed</div></div><div class="landing-stat animate-on-scroll"><div class="landing-stat-value">4.9★</div><div class="landing-stat-label">Average Rating</div></div></div></div></section>
-
-      <!-- TESTIMONIALS -->
       <section class="testimonials-section"><div class="landing-container"><div class="section-label animate-on-scroll">Testimonials</div><h2 class="section-title animate-on-scroll">What Our <span class="hero-gradient">Customers Say</span></h2><div class="testimonials-grid"><div class="testimonial-card animate-on-scroll"><div class="testimonial-stars">★★★★★</div><p class="testimonial-text">"CleanerPro completely transformed how I manage home cleaning. Booking is effortless!"</p><div class="testimonial-author"><div class="testimonial-avatar" style="background:linear-gradient(135deg,#3b82f6,#06b6d4)">J</div><div><strong>Jennifer Lee</strong><span>Homeowner · Mumbai</span></div></div></div><div class="testimonial-card animate-on-scroll"><div class="testimonial-stars">★★★★★</div><p class="testimonial-text">"As a cleaning professional, this platform has tripled my client base."</p><div class="testimonial-author"><div class="testimonial-avatar" style="background:linear-gradient(135deg,#10b981,#059669)">M</div><div><strong>Michael Torres</strong><span>Cleaning Professional · Bangalore</span></div></div></div><div class="testimonial-card animate-on-scroll"><div class="testimonial-stars">★★★★★</div><p class="testimonial-text">"We use CleanerPro for our entire hotel chain. Outstanding quality."</p><div class="testimonial-author"><div class="testimonial-avatar" style="background:linear-gradient(135deg,#8b5cf6,#ec4899)">S</div><div><strong>Sarah Chen</strong><span>Operations Manager · Delhi</span></div></div></div></div></div></section>
-
-      <!-- FOR WORKERS CTA -->
       <section class="workers-cta-section"><div class="landing-container"><div class="workers-cta-grid"><div class="workers-cta-content animate-on-scroll"><div class="section-label" style="text-align:left">For Professionals</div><h2 class="section-title" style="text-align:left">Grow Your Cleaning <span class="hero-gradient">Business</span></h2><p>Join thousands of cleaning professionals earning more with CleanerPro.</p><ul class="workers-cta-list"><li><span class="wcl-check">✓</span> Set your own schedule & hourly rate</li><li><span class="wcl-check">✓</span> Receive bookings directly</li><li><span class="wcl-check">✓</span> Secure, on-time payments</li><li><span class="wcl-check">✓</span> Build your reputation with reviews</li><li><span class="wcl-check">✓</span> Free to join</li></ul><button class="btn btn-primary btn-lg" onclick="app.navigate('#/register')" style="margin-top:1rem">Join as a Professional →</button></div><div class="workers-cta-visual animate-on-scroll"><div class="wcv-card"><div class="wcv-header"><div class="wcv-avatar">👷</div><div><strong>Your Dashboard</strong><span class="text-sm text-muted">Worker View</span></div><div class="wcv-online">● Online</div></div><div class="wcv-stats"><div class="wcv-stat"><span class="wcv-stat-val">₹32,000</span><span class="wcv-stat-lbl">This Month</span></div><div class="wcv-stat"><span class="wcv-stat-val">28</span><span class="wcv-stat-lbl">Jobs Done</span></div><div class="wcv-stat"><span class="wcv-stat-val">5.0★</span><span class="wcv-stat-lbl">Rating</span></div></div><div class="wcv-jobs"><div class="wcv-job"><span>🏠</span><div><strong>House Clean</strong><span>Today 2:00 PM · ₹1,500</span></div><span class="wcv-job-status accepted">Accepted</span></div><div class="wcv-job"><span>🧽</span><div><strong>Deep Clean</strong><span>Tomorrow 10 AM · ₹3,500</span></div><span class="wcv-job-status pending">Pending</span></div></div></div></div></div></div></section>
-
-      <!-- PRICING -->
       <section class="pricing-section" id="pricing-section"><div class="landing-container"><div class="section-label animate-on-scroll">Pricing</div><h2 class="section-title animate-on-scroll">Simple, <span class="hero-gradient">Transparent</span> Pricing</h2><p class="section-subtitle animate-on-scroll">No hidden fees. No subscriptions.</p><div class="pricing-grid"><div class="pricing-card animate-on-scroll"><div class="pricing-card-header"><h3>Customer</h3><div class="pricing-price">Free</div><p>For homeowners & businesses</p></div><ul class="pricing-features"><li>✓ Browse all services & workers</li><li>✓ GPS-powered worker search</li><li>✓ Instant online booking</li><li>✓ Secure payment processing</li><li>✓ Review & rate workers</li></ul><button class="btn btn-primary btn-block btn-lg" onclick="app.navigate('#/register')">Sign Up Free</button></div><div class="pricing-card featured animate-on-scroll"><div class="pricing-popular">Most Popular</div><div class="pricing-card-header"><h3>Professional</h3><div class="pricing-price">Free</div><p>For cleaning professionals</p></div><ul class="pricing-features"><li>✓ Everything in Customer</li><li>✓ Create your professional profile</li><li>✓ Receive booking requests</li><li>✓ Set your own rates & schedule</li><li>✓ Earning insights & history</li></ul><button class="btn btn-primary btn-block btn-lg" onclick="app.navigate('#/register')">Join as Pro</button></div><div class="pricing-card animate-on-scroll"><div class="pricing-card-header"><h3>Enterprise</h3><div class="pricing-price">Custom</div><p>For large businesses</p></div><ul class="pricing-features"><li>✓ Everything in Professional</li><li>✓ Admin dashboard & analytics</li><li>✓ Worker approval workflow</li><li>✓ Revenue tracking & reports</li><li>✓ Priority support</li></ul><button class="btn btn-ghost btn-block btn-lg" onclick="app.navigate('#/register')">Contact Sales</button></div></div></div></section>
-
-      <!-- FAQ -->
       <section class="faq-section" id="faq-section"><div class="landing-container"><div class="section-label animate-on-scroll">FAQ</div><h2 class="section-title animate-on-scroll">Frequently Asked <span class="hero-gradient">Questions</span></h2><div class="faq-grid"><div class="faq-item animate-on-scroll" onclick="this.classList.toggle('open')"><div class="faq-question">How does CleanerPro work? <span class="faq-toggle">+</span></div><div class="faq-answer">CleanerPro connects you with vetted cleaning professionals in your area. Simply create an account, browse available services, find a worker near you, book a convenient time, and pay securely.</div></div><div class="faq-item animate-on-scroll" onclick="this.classList.toggle('open')"><div class="faq-question">Is it really free to use? <span class="faq-toggle">+</span></div><div class="faq-answer">Yes! Creating an account and booking services is completely free for customers. You only pay for the cleaning services you book.</div></div><div class="faq-item animate-on-scroll" onclick="this.classList.toggle('open')"><div class="faq-question">How are cleaning professionals vetted? <span class="faq-toggle">+</span></div><div class="faq-answer">Every professional undergoes an admin approval process before they can start accepting jobs.</div></div><div class="faq-item animate-on-scroll" onclick="this.classList.toggle('open')"><div class="faq-question">What payment methods are supported? <span class="faq-toggle">+</span></div><div class="faq-answer">We support Credit Cards, Debit Cards, and PayPal. All transactions are encrypted and processed securely.</div></div><div class="faq-item animate-on-scroll" onclick="this.classList.toggle('open')"><div class="faq-question">Can I cancel or reschedule a booking? <span class="faq-toggle">+</span></div><div class="faq-answer">Yes, you can cancel any booking that is still in Pending or Accepted status directly from your dashboard.</div></div><div class="faq-item animate-on-scroll" onclick="this.classList.toggle('open')"><div class="faq-question">How do I become a cleaning professional? <span class="faq-toggle">+</span></div><div class="faq-answer">Simply register as a Worker, fill in your profile. Once an admin approves your account, you'll start receiving job requests.</div></div></div></div></section>
-
-      <!-- FINAL CTA -->
       <section class="final-cta-section"><div class="landing-container"><div class="final-cta animate-on-scroll"><h2>Ready to Experience <span class="hero-gradient">Effortless Cleaning?</span></h2><p>Join thousands of happy customers and professionals. Get started in under 30 seconds.</p><div class="final-cta-buttons"><button class="btn btn-primary btn-lg" onclick="app.navigate('#/register')">🚀 Create Free Account</button><button class="btn btn-ghost btn-lg" onclick="app.navigate('#/login')">Sign In →</button></div></div></div></section>
-
-      <!-- FOOTER -->
       <footer class="landing-footer"><div class="landing-container"><div class="footer-grid"><div class="footer-brand"><div class="nav-brand"><span class="nav-brand-icon">🧹</span><span class="nav-brand-text">CleanerPro</span></div><p>The modern platform for professional cleaning services.</p></div><div class="footer-col"><h4>Platform</h4><a href="#features-section">Features</a><a href="#how-section">How It Works</a><a href="#services-section">Services</a><a href="#pricing-section">Pricing</a></div><div class="footer-col"><h4>Company</h4><a href="#">About Us</a><a href="#">Careers</a><a href="#">Blog</a><a href="#">Contact</a></div><div class="footer-col"><h4>Legal</h4><a href="#">Privacy Policy</a><a href="#">Terms of Service</a><a href="#">Cookie Policy</a></div></div><div class="footer-bottom"><p>© 2024 CleanerPro. All rights reserved. Built with ❤️</p></div></div></footer>
     </div>`;
   }
 
   initLandingAnimations() {
     const nav = document.getElementById('landing-nav');
-    const handleScroll = () => {
-      if (window.scrollY > 60) nav.classList.add('scrolled');
-      else nav.classList.remove('scrolled');
-    };
+    const handleScroll = () => { if (window.scrollY > 60) nav.classList.add('scrolled'); else nav.classList.remove('scrolled'); };
     window.addEventListener('scroll', handleScroll);
     handleScroll();
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
-    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+    const observer = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); }); }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
     document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
-
     document.querySelectorAll('.landing-stat-value').forEach(el => {
       const target = el.textContent.trim();
       if (target.includes('.')) return;
@@ -211,13 +175,8 @@ class App {
       if (!match) return;
       const prefix = match[1], num = parseInt(match[2].replace(/,/g, '')), suffix = match[3];
       if (!num || num < 10) return;
-      let current = 0;
-      const step = Math.ceil(num / 60);
-      const timer = setInterval(() => {
-        current += step;
-        if (current >= num) { current = num; clearInterval(timer); }
-        el.textContent = prefix + current.toLocaleString() + suffix;
-      }, 25);
+      let current = 0; const step = Math.ceil(num / 60);
+      const timer = setInterval(() => { current += step; if (current >= num) { current = num; clearInterval(timer); } el.textContent = prefix + current.toLocaleString() + suffix; }, 25);
     });
   }
 
@@ -404,7 +363,8 @@ class App {
       ${item('#/admin/approvals','✅','Worker Approvals')}
       ${item('#/admin/workers','👷','Manage Workers')}
       ${item('#/admin/customers','👥','Manage Customers')}
-      ${item('#/admin/bookings','📋','All Bookings')}`;
+      ${item('#/admin/bookings','📋','All Bookings')}
+      ${item('#/admin/services','🧹','Manage Services')}`;
   }
 
   openSidebar() { document.getElementById('sidebar').classList.add('open'); document.querySelector('.sidebar-backdrop').classList.add('show'); }
@@ -481,17 +441,11 @@ class App {
 
   /* ═══════════════ BOOKING DETAIL DRAWER ═══════════════ */
   async openBookingDetail(bookingId, role) {
-    // Show loading drawer immediately
     this._openDrawer('Loading...', `<div class="loading-overlay"><div class="spinner"></div><span>Loading details...</span></div>`);
-
     try {
       const booking = await API.getBooking(bookingId);
-
-      // Fetch payment info
       let payment = null;
       try { payment = await API.getPayment(bookingId); } catch {}
-
-      // Fetch review if completed
       let review = null;
       if (booking.status === 'COMPLETED' && booking.worker_id) {
         try {
@@ -499,7 +453,6 @@ class App {
           review = reviews.find(r => r.booking_id == bookingId) || null;
         } catch {}
       }
-
       const title = `${booking.service_icon || '🧹'} Booking #${booking.id}`;
       const content = this._renderBookingDetailContent(booking, payment, review, role);
       this._updateDrawer(title, content);
@@ -509,13 +462,9 @@ class App {
   }
 
   _renderBookingDetailContent(booking, payment, review, role) {
-    const statusColors = {
-      PENDING: '#f59e0b', ACCEPTED: '#14b8a6', IN_PROGRESS: '#6366f1',
-      COMPLETED: '#34d399', REJECTED: '#f87171', CANCELLED: '#94a3b8'
-    };
+    const statusColors = { PENDING: '#f59e0b', ACCEPTED: '#14b8a6', IN_PROGRESS: '#6366f1', COMPLETED: '#34d399', REJECTED: '#f87171', CANCELLED: '#94a3b8' };
     const statusColor = statusColors[booking.status] || '#6366f1';
 
-    // Action buttons
     let actions = '';
     if (role === 'customer') {
       if (['PENDING','ACCEPTED'].includes(booking.status))
@@ -534,25 +483,23 @@ class App {
       if (booking.status === 'IN_PROGRESS')
         actions += `<button class="btn btn-success" onclick="app.updateBooking(${booking.id},'COMPLETED');app.closeDrawer()">✅ Mark Complete</button>`;
     } else if (role === 'admin') {
-      if (['PENDING','ACCEPTED'].includes(booking.status))
-        actions += `<button class="btn btn-danger btn-sm" onclick="app.updateBooking(${booking.id},'CANCELLED');app.closeDrawer()">❌ Cancel</button>`;
+      actions += `<button class="btn btn-warning btn-sm" onclick="app.openAdminEditBookingModal(${booking.id})">✏️ Edit</button>`;
+      if (!['COMPLETED','REJECTED','CANCELLED'].includes(booking.status))
+        actions += `<button class="btn btn-danger btn-sm" onclick="app.adminCancelBooking(${booking.id})">❌ Cancel</button>`;
+      actions += `<button class="btn btn-danger btn-sm" onclick="app.adminDeleteBooking(${booking.id})">🗑️ Delete</button>`;
     }
 
-    // Person info section
     const personLabel = role === 'customer' ? 'Worker' : role === 'worker' ? 'Customer' : 'Details';
     const personName = role === 'customer' ? (booking.worker_name || 'Unassigned') : (booking.customer_name || 'Unknown');
     const personAvatar = role === 'customer' ? booking.worker_avatar : booking.customer_avatar;
 
     return `
     <div class="booking-detail-drawer">
-      <!-- Status Banner -->
       <div class="bdd-status-banner" style="background:${statusColor}20;border-left:4px solid ${statusColor}">
         <div class="bdd-status-dot" style="background:${statusColor}"></div>
         <span style="color:${statusColor};font-weight:700;font-size:.95rem">${booking.status.replace('_',' ')}</span>
         <span class="bdd-booking-id" style="margin-left:auto;color:var(--text-muted);font-size:.8rem">Booking #${booking.id}</span>
       </div>
-
-      <!-- Service Info -->
       <div class="bdd-section">
         <h3 class="bdd-section-title">🧹 Service Details</h3>
         <div class="bdd-card">
@@ -564,87 +511,45 @@ class App {
           <div class="bdd-row bdd-price-row"><span class="bdd-label">Total Amount</span><span class="bdd-price">₹${booking.total_price || 0}</span></div>
         </div>
       </div>
-
-      <!-- Person Info -->
+      ${role === 'admin' ? `
+      <div class="bdd-section">
+        <h3 class="bdd-section-title">👤 Customer</h3>
+        <div class="bdd-card bdd-person-card">
+          <div class="bdd-person-avatar">${booking.customer_avatar && booking.customer_avatar.startsWith('data:') ? `<img src="${booking.customer_avatar}" alt="">` : (booking.customer_avatar || '👤')}</div>
+          <div class="bdd-person-info"><strong>${booking.customer_name || 'Unknown'}</strong></div>
+        </div>
+      </div>
+      <div class="bdd-section">
+        <h3 class="bdd-section-title">👷 Worker</h3>
+        <div class="bdd-card bdd-person-card">
+          <div class="bdd-person-avatar">${booking.worker_avatar && booking.worker_avatar.startsWith('data:') ? `<img src="${booking.worker_avatar}" alt="">` : (booking.worker_avatar || '👤')}</div>
+          <div class="bdd-person-info"><strong>${booking.worker_name || 'Unassigned'}</strong></div>
+        </div>
+      </div>` : `
       <div class="bdd-section">
         <h3 class="bdd-section-title">👤 ${personLabel}</h3>
         <div class="bdd-card bdd-person-card">
           <div class="bdd-person-avatar">${personAvatar && personAvatar.startsWith('data:') ? `<img src="${personAvatar}" alt="">` : (personAvatar || '👤')}</div>
-          <div class="bdd-person-info">
-            <strong>${personName}</strong>
-            ${role === 'customer' && booking.worker_id ? `<div class="bdd-worker-meta">
-              ${booking.worker_specialization ? `<span>🔧 ${booking.worker_specialization}</span>` : ''}
-            </div>` : ''}
-          </div>
+          <div class="bdd-person-info"><strong>${personName}</strong></div>
         </div>
-      </div>
-
-      <!-- Payment Section -->
+      </div>`}
       <div class="bdd-section">
         <h3 class="bdd-section-title">💳 Payment</h3>
         <div class="bdd-card">
-          ${payment ? `
-            <div class="bdd-payment-success">
-              <div class="bdd-payment-icon">✅</div>
-              <div class="bdd-payment-info">
-                <strong>Payment Completed</strong>
-                <span>₹${payment.amount} via ${payment.method}</span>
-                <span class="bdd-txn">Transaction: ${payment.transaction_id}</span>
-                <span class="bdd-date">${new Date(payment.created_at).toLocaleString()}</span>
-              </div>
-            </div>
-          ` : booking.status === 'COMPLETED' ? `
-            <div class="bdd-payment-pending">
-              <div class="bdd-payment-icon">⏳</div>
-              <div class="bdd-payment-info">
-                <strong>Payment Pending</strong>
-                <span>₹${booking.total_price || 0} due</span>
-              </div>
-              ${role === 'customer' ? `<button class="btn btn-success btn-sm" onclick="app.closeDrawer();app.openPaymentModal(${booking.id}, ${booking.total_price})">Pay Now</button>` : ''}
-            </div>
-          ` : `
-            <div class="bdd-payment-na">
-              <span>💬 Payment will be processed upon completion</span>
-            </div>
-          `}
+          ${payment ? `<div class="bdd-payment-success"><div class="bdd-payment-icon">✅</div><div class="bdd-payment-info"><strong>Payment Completed</strong><span>₹${payment.amount} via ${payment.method}</span><span class="bdd-txn">Transaction: ${payment.transaction_id}</span><span class="bdd-date">${new Date(payment.created_at).toLocaleString()}</span></div></div>` : booking.status === 'COMPLETED' ? `<div class="bdd-payment-pending"><div class="bdd-payment-icon">⏳</div><div class="bdd-payment-info"><strong>Payment Pending</strong><span>₹${booking.total_price || 0} due</span></div>${role === 'customer' ? `<button class="btn btn-success btn-sm" onclick="app.closeDrawer();app.openPaymentModal(${booking.id}, ${booking.total_price})">Pay Now</button>` : ''}</div>` : `<div class="bdd-payment-na"><span>💬 Payment will be processed upon completion</span></div>`}
         </div>
       </div>
-
-      <!-- Review Section -->
       ${booking.status === 'COMPLETED' ? `
       <div class="bdd-section">
         <h3 class="bdd-section-title">⭐ Review</h3>
         <div class="bdd-card">
-          ${review ? `
-            <div class="bdd-review-content">
-              <div class="bdd-stars">${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</div>
-              <div class="bdd-review-meta">
-                <strong>${role === 'worker' ? (review.customer_name || 'Customer') : 'Your Review'}</strong>
-                <span>${new Date(review.created_at).toLocaleDateString()}</span>
-              </div>
-              ${review.comment ? `<p class="bdd-review-text">"${review.comment}"</p>` : ''}
-            </div>
-          ` : role === 'customer' ? `
-            <div class="bdd-review-empty">
-              <span>You haven't reviewed this job yet.</span>
-              <button class="btn btn-primary btn-sm" onclick="app.closeDrawer();app.openReviewModal(${booking.id}, ${booking.worker_id})">⭐ Leave Review</button>
-            </div>
-          ` : `
-            <div class="bdd-review-empty"><span>No review submitted yet.</span></div>
-          `}
+          ${review ? `<div class="bdd-review-content"><div class="bdd-stars">${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</div><div class="bdd-review-meta"><strong>${role === 'worker' ? (review.customer_name || 'Customer') : 'Your Review'}</strong><span>${new Date(review.created_at).toLocaleDateString()}</span></div>${review.comment ? `<p class="bdd-review-text">"${review.comment}"</p>` : ''}</div>` : role === 'customer' ? `<div class="bdd-review-empty"><span>You haven't reviewed this job yet.</span><button class="btn btn-primary btn-sm" onclick="app.closeDrawer();app.openReviewModal(${booking.id}, ${booking.worker_id})">⭐ Leave Review</button></div>` : `<div class="bdd-review-empty"><span>No review submitted yet.</span></div>`}
         </div>
-      </div>
-      ` : ''}
-
-      <!-- Timeline -->
+      </div>` : ''}
       <div class="bdd-section">
         <h3 class="bdd-section-title">📋 Timeline</h3>
-        <div class="bdd-timeline">
-          ${this._renderTimeline(booking)}
-        </div>
+        <div class="bdd-timeline">${this._renderTimeline(booking)}</div>
       </div>
-
-      <!-- Actions -->
       ${actions ? `<div class="bdd-actions">${actions}</div>` : ''}
     </div>`;
   }
@@ -654,19 +559,14 @@ class App {
     const terminalStatuses = ['REJECTED', 'CANCELLED'];
     const currentIdx = statuses.indexOf(booking.status);
     const isTerminal = terminalStatuses.includes(booking.status);
-
     const icons = { PENDING: '📝', ACCEPTED: '✅', IN_PROGRESS: '🔧', COMPLETED: '🎉', REJECTED: '❌', CANCELLED: '🚫' };
     const labels = { PENDING: 'Booking Requested', ACCEPTED: 'Accepted by Worker', IN_PROGRESS: 'Job In Progress', COMPLETED: 'Job Completed', REJECTED: 'Booking Rejected', CANCELLED: 'Booking Cancelled' };
-
     if (isTerminal) {
-      return `
-        <div class="timeline-item done"><div class="timeline-dot done">${icons.PENDING}</div><div class="timeline-content"><strong>${labels.PENDING}</strong><span>Booking was submitted</span></div></div>
+      return `<div class="timeline-item done"><div class="timeline-dot done">${icons.PENDING}</div><div class="timeline-content"><strong>${labels.PENDING}</strong><span>Booking was submitted</span></div></div>
         <div class="timeline-item error"><div class="timeline-dot error">${icons[booking.status]}</div><div class="timeline-content"><strong>${labels[booking.status]}</strong></div></div>`;
     }
-
     return statuses.map((s, i) => {
-      const done = i <= currentIdx;
-      const active = i === currentIdx;
+      const done = i <= currentIdx; const active = i === currentIdx;
       return `<div class="timeline-item ${done ? 'done' : ''} ${active ? 'active' : ''}">
         <div class="timeline-dot ${done ? 'done' : ''} ${active ? 'active' : ''}">${done ? icons[s] : (i + 1)}</div>
         <div class="timeline-content"><strong>${labels[s]}</strong>${active ? '<span class="timeline-current">Current Status</span>' : ''}</div>
@@ -694,13 +594,77 @@ class App {
     }
   }
 
+  async adminCancelBooking(id) {
+    if (!confirm('Cancel this booking?')) return;
+    try {
+      await API.updateBookingStatus(id, 'CANCELLED');
+      Components.toast('Booking cancelled.', 'success');
+      this.closeDrawer();
+      this.route();
+    } catch (e) { Components.toast(e.message, 'error'); }
+  }
+
+  async adminDeleteBooking(id) {
+    if (!confirm('Permanently delete this booking and all related data? This cannot be undone.')) return;
+    try {
+      await API.deleteBooking(id);
+      Components.toast('Booking deleted.', 'success');
+      this.closeDrawer();
+      this.route();
+    } catch (e) { Components.toast(e.message, 'error'); }
+  }
+
+  async openAdminEditBookingModal(bookingId) {
+    try {
+      const booking = await API.getBooking(bookingId);
+      const services = await API.getServices();
+      const body = `
+        <form id="admin-booking-form" onsubmit="app.submitAdminBookingEdit(event, ${bookingId})">
+          <div class="form-group">
+            <label class="form-label">Service</label>
+            <select class="form-select" name="service_id">
+              ${services.map(s => `<option value="${s.id}" ${s.id == booking.service_id ? 'selected' : ''}>${s.icon || '🧹'} ${s.name} — ₹${s.base_price}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Date</label><input class="form-input" type="date" name="scheduled_date" value="${booking.scheduled_date || ''}"></div>
+            <div class="form-group"><label class="form-label">Time</label><input class="form-input" type="time" name="scheduled_time" value="${booking.scheduled_time || ''}"></div>
+          </div>
+          <div class="form-group"><label class="form-label">Status</label>
+            <select class="form-select" name="status">
+              ${['PENDING','ACCEPTED','IN_PROGRESS','COMPLETED','REJECTED','CANCELLED'].map(s => `<option value="${s}" ${s === booking.status ? 'selected' : ''}>${s}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Address</label><input class="form-input" type="text" name="address" value="${booking.address || ''}"></div>
+          <div class="form-group"><label class="form-label">Total Price (₹)</label><input class="form-input" type="number" name="total_price" value="${booking.total_price || 0}" min="0"></div>
+          <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" name="notes">${booking.notes || ''}</textarea></div>
+        </form>`;
+      const footer = `<button class="btn btn-ghost" onclick="app.closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="document.getElementById('admin-booking-form').requestSubmit()">💾 Save Changes</button>`;
+      document.body.insertAdjacentHTML('beforeend', Components.modal('Edit Booking #' + bookingId, body, footer));
+    } catch (e) { Components.toast(e.message, 'error'); }
+  }
+
+  async submitAdminBookingEdit(e, bookingId) {
+    e.preventDefault();
+    const form = new FormData(e.target);
+    const data = Object.fromEntries(form.entries());
+    if (data.total_price) data.total_price = +data.total_price;
+    try {
+      await API.adminUpdateBooking(bookingId, data);
+      this.closeModal();
+      Components.toast('Booking updated!', 'success');
+      this.closeDrawer();
+      this.route();
+    } catch (e) { Components.toast(e.message, 'error'); }
+  }
+
   /* ═══════════════ WORKER DETAIL DRAWER ═══════════════ */
   async openWorkerDetail(workerId) {
     this._openDrawer('Loading...', `<div class="loading-overlay"><div class="spinner"></div><span>Loading worker profile...</span></div>`);
     try {
       const worker = await API.getWorkerProfile(workerId);
       const reviews = await API.getWorkerReviews(workerId);
-
       const title = `👷 ${worker.name}`;
       const content = `
       <div class="booking-detail-drawer">
@@ -725,18 +689,7 @@ class App {
             ${worker.bio ? `<div class="bdd-row" style="flex-direction:column;gap:.25rem"><span class="bdd-label">Bio</span><span class="bdd-value" style="font-size:.88rem">${worker.bio}</span></div>` : ''}
           </div>
         </div>
-        ${reviews.length ? `
-        <div class="bdd-section">
-          <h3 class="bdd-section-title">⭐ Recent Reviews</h3>
-          ${reviews.slice(0, 5).map(r => `
-          <div class="bdd-card" style="margin-bottom:.75rem">
-            <div class="bdd-review-content">
-              <div class="bdd-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
-              <div class="bdd-review-meta"><strong>${r.customer_name || 'Customer'}</strong><span>${new Date(r.created_at).toLocaleDateString()}</span></div>
-              ${r.comment ? `<p class="bdd-review-text">"${r.comment}"</p>` : ''}
-            </div>
-          </div>`).join('')}
-        </div>` : ''}
+        ${reviews.length ? `<div class="bdd-section"><h3 class="bdd-section-title">⭐ Recent Reviews</h3>${reviews.slice(0, 5).map(r => `<div class="bdd-card" style="margin-bottom:.75rem"><div class="bdd-review-content"><div class="bdd-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div><div class="bdd-review-meta"><strong>${r.customer_name || 'Customer'}</strong><span>${new Date(r.created_at).toLocaleDateString()}</span></div>${r.comment ? `<p class="bdd-review-text">"${r.comment}"</p>` : ''}</div></div>`).join('')}</div>` : ''}
         ${this.user.role === 'customer' ? `<div class="bdd-actions"><button class="btn btn-primary" onclick="app.closeDrawer();app.openBookingModal(null, ${worker.id})">📅 Book This Worker</button></div>` : ''}
       </div>`;
       this._updateDrawer(title, content);
@@ -749,14 +702,11 @@ class App {
   async openUserDetail(userId, role) {
     this._openDrawer('Loading...', `<div class="loading-overlay"><div class="spinner"></div><span>Loading user...</span></div>`);
     try {
-      // Fetch user from admin users list
-      const users = await API.getUsers(role);
-      const user = users.find(u => u.id == userId);
+      const user = await API.getAdminUser(userId);
       if (!user) throw new Error('User not found');
 
       let bookingsHtml = '';
       if (role === 'worker') {
-        // Fetch all bookings for this worker via admin
         try {
           const allBookings = await API.getAllBookings();
           const workerBookings = allBookings.filter(b => b.worker_id == userId);
@@ -764,7 +714,6 @@ class App {
           const revenue = workerBookings.filter(b => b.status === 'COMPLETED').reduce((s, b) => s + (b.total_price || 0), 0);
           const reviews = await API.getWorkerReviews(userId);
           const avgRating = reviews.length ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1) : 'N/A';
-
           bookingsHtml = `
           <div class="bdd-section">
             <h3 class="bdd-section-title">📊 Performance</h3>
@@ -782,15 +731,7 @@ class App {
           const allBookings = await API.getAllBookings();
           const custBookings = allBookings.filter(b => b.customer_id == userId);
           const spent = custBookings.filter(b => b.status === 'COMPLETED').reduce((s, b) => s + (b.total_price || 0), 0);
-          bookingsHtml = `
-          <div class="bdd-section">
-            <h3 class="bdd-section-title">📊 Activity</h3>
-            <div class="bdd-stats-mini">
-              <div class="bdd-stat-mini"><span class="bdd-stat-val">${custBookings.length}</span><span class="bdd-stat-lbl">Total Bookings</span></div>
-              <div class="bdd-stat-mini"><span class="bdd-stat-val">${custBookings.filter(b=>b.status==='COMPLETED').length}</span><span class="bdd-stat-lbl">Completed</span></div>
-              <div class="bdd-stat-mini"><span class="bdd-stat-val">₹${spent}</span><span class="bdd-stat-lbl">Total Spent</span></div>
-            </div>
-          </div>`;
+          bookingsHtml = `<div class="bdd-section"><h3 class="bdd-section-title">📊 Activity</h3><div class="bdd-stats-mini"><div class="bdd-stat-mini"><span class="bdd-stat-val">${custBookings.length}</span><span class="bdd-stat-lbl">Total Bookings</span></div><div class="bdd-stat-mini"><span class="bdd-stat-val">${custBookings.filter(b=>b.status==='COMPLETED').length}</span><span class="bdd-stat-lbl">Completed</span></div><div class="bdd-stat-mini"><span class="bdd-stat-val">₹${spent}</span><span class="bdd-stat-lbl">Total Spent</span></div></div></div>`;
         } catch {}
       }
 
@@ -803,24 +744,92 @@ class App {
             <div class="bdd-row"><span class="bdd-label">Email</span><span class="bdd-value">${user.email}</span></div>
             <div class="bdd-row"><span class="bdd-label">Phone</span><span class="bdd-value">${user.phone || 'N/A'}</span></div>
             <div class="bdd-row"><span class="bdd-label">Status</span><span class="bdd-value">${Components.statusBadge(user.status)}</span></div>
-            ${role === 'worker' ? `
-            <div class="bdd-row"><span class="bdd-label">Specialization</span><span class="bdd-value">${user.specialization || 'N/A'}</span></div>
-            <div class="bdd-row"><span class="bdd-label">Availability</span><span class="bdd-value">${user.availability === 'online' ? '🟢 Online' : '🔴 Offline'}</span></div>` : ''}
+            ${role === 'worker' ? `<div class="bdd-row"><span class="bdd-label">Specialization</span><span class="bdd-value">${user.specialization || 'N/A'}</span></div><div class="bdd-row"><span class="bdd-label">Hourly Rate</span><span class="bdd-value">₹${user.hourly_rate || 'N/A'}</span></div><div class="bdd-row"><span class="bdd-label">Availability</span><span class="bdd-value">${user.availability === 'online' ? '🟢 Online' : '🔴 Offline'}</span></div>` : ''}
             <div class="bdd-row"><span class="bdd-label">Joined</span><span class="bdd-value">${new Date(user.created_at).toLocaleDateString()}</span></div>
           </div>
         </div>
         ${bookingsHtml}
         <div class="bdd-actions">
-          ${user.status === 'active' ? `<button class="btn btn-danger btn-sm" onclick="app.updateUserStatus(${user.id},'suspended');app.closeDrawer()">🚫 Suspend</button>` : ''}
-          ${user.status === 'suspended' ? `<button class="btn btn-success btn-sm" onclick="app.updateUserStatus(${user.id},'active');app.closeDrawer()">✅ Activate</button>` : ''}
-          ${user.status === 'pending' ? `<button class="btn btn-success btn-sm" onclick="app.updateUserStatus(${user.id},'active');app.closeDrawer()">✅ Approve</button><button class="btn btn-danger btn-sm" onclick="app.updateUserStatus(${user.id},'suspended');app.closeDrawer()">❌ Reject</button>` : ''}
-          ${user.status === 'inactive' ? `<button class="btn btn-success btn-sm" onclick="app.updateUserStatus(${user.id},'active');app.closeDrawer()">✅ Activate</button>` : ''}
+          <button class="btn btn-warning btn-sm" onclick="app.openAdminEditUserModal(${user.id}, '${role}')">✏️ Edit User</button>
+          ${user.status === 'active' ? `<button class="btn btn-danger btn-sm" onclick="app.updateUserStatus(${user.id},'suspended')">🚫 Suspend</button>` : ''}
+          ${user.status === 'suspended' ? `<button class="btn btn-success btn-sm" onclick="app.updateUserStatus(${user.id},'active')">✅ Activate</button>` : ''}
+          ${user.status === 'pending' ? `<button class="btn btn-success btn-sm" onclick="app.updateUserStatus(${user.id},'active')">✅ Approve</button><button class="btn btn-danger btn-sm" onclick="app.updateUserStatus(${user.id},'suspended')">❌ Reject</button>` : ''}
+          ${user.status === 'inactive' ? `<button class="btn btn-success btn-sm" onclick="app.updateUserStatus(${user.id},'active')">✅ Activate</button>` : ''}
+          <button class="btn btn-danger btn-sm" onclick="app.deleteUser(${user.id}, '${user.name}')">🗑️ Delete Account</button>
         </div>
       </div>`;
       this._updateDrawer(title, content);
     } catch (e) {
       this._updateDrawer('Error', `<div class="empty-state"><div class="empty-icon">❌</div><h3>Failed to load</h3><p>${e.message}</p></div>`);
     }
+  }
+
+  async openAdminEditUserModal(userId, role) {
+    try {
+      const user = await API.getAdminUser(userId);
+      const isWorker = role === 'worker';
+      const body = `
+        <form id="admin-user-form" onsubmit="app.submitAdminUserEdit(event, ${userId})">
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" name="name" value="${user.name || ''}" required></div>
+            <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" name="email" value="${user.email || ''}" required></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Phone</label><input class="form-input" name="phone" value="${user.phone || ''}"></div>
+            <div class="form-group"><label class="form-label">Status</label>
+              <select class="form-select" name="status">
+                ${['active','inactive','pending','suspended'].map(s => `<option value="${s}" ${s === user.status ? 'selected' : ''}>${s}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          <div class="form-group"><label class="form-label">Address</label><input class="form-input" name="address" value="${user.address || ''}"></div>
+          ${isWorker ? `
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Specialization</label><input class="form-input" name="specialization" value="${user.specialization || ''}"></div>
+            <div class="form-group"><label class="form-label">Hourly Rate (₹)</label><input class="form-input" type="number" name="hourly_rate" value="${user.hourly_rate || ''}" min="0"></div>
+          </div>
+          <div class="form-group"><label class="form-label">Availability</label>
+            <select class="form-select" name="availability">
+              <option value="online" ${user.availability === 'online' ? 'selected' : ''}>Online</option>
+              <option value="offline" ${user.availability !== 'online' ? 'selected' : ''}>Offline</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Bio</label><textarea class="form-textarea" name="bio" rows="3">${user.bio || ''}</textarea></div>` : ''}
+          <div class="form-group">
+            <label class="form-label">New Password <span style="color:var(--text-muted);font-weight:400">(leave blank to keep current)</span></label>
+            <input class="form-input" type="password" name="password" placeholder="Min 6 characters" minlength="6">
+          </div>
+        </form>`;
+      const footer = `<button class="btn btn-ghost" onclick="app.closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="document.getElementById('admin-user-form').requestSubmit()">💾 Save Changes</button>`;
+      document.body.insertAdjacentHTML('beforeend', Components.modal('Edit User: ' + user.name, body, footer));
+    } catch (e) { Components.toast(e.message, 'error'); }
+  }
+
+  async submitAdminUserEdit(e, userId) {
+    e.preventDefault();
+    const form = new FormData(e.target);
+    const data = Object.fromEntries(form.entries());
+    // Remove empty password
+    if (!data.password) delete data.password;
+    if (data.hourly_rate) data.hourly_rate = +data.hourly_rate;
+    try {
+      await API.adminUpdateUser(userId, data);
+      this.closeModal();
+      Components.toast('User updated successfully!', 'success');
+      this.closeDrawer();
+      this.route();
+    } catch (e) { Components.toast(e.message, 'error'); }
+  }
+
+  async deleteUser(userId, userName) {
+    if (!confirm(`Permanently delete account for "${userName}"? This will remove all their data and cannot be undone.`)) return;
+    try {
+      await API.deleteUser(userId);
+      Components.toast(`${userName}'s account has been deleted.`, 'success');
+      this.closeDrawer();
+      this.route();
+    } catch (e) { Components.toast(e.message, 'error'); }
   }
 
   /* ═══════════════ DRAWER SYSTEM ═══════════════ */
@@ -869,7 +878,6 @@ class App {
       const active = bookings.filter(b => ['PENDING','ACCEPTED','IN_PROGRESS'].includes(b.status)).length;
       const completed = bookings.filter(b => b.status === 'COMPLETED').length;
       const spent = bookings.filter(b => b.status === 'COMPLETED').reduce((s, b) => s + (b.total_price || 0), 0);
-
       const recent = bookings.slice(0, 5);
       document.getElementById('page-content').innerHTML = `
         <div class="stats-grid">
@@ -953,11 +961,7 @@ class App {
       L.marker([lat, lng], { title: 'Your Location' }).addTo(map).bindPopup('<b>📍 Your Location</b>');
       workers.forEach(w => {
         if (w.latitude && w.longitude) {
-          L.marker([w.latitude, w.longitude]).addTo(map).bindPopup(`<div class="worker-map-popup">
-            <h4>${w.name}</h4><div class="wmp-spec">${w.specialization || 'General'}</div>
-            <div class="wmp-rating">${'★'.repeat(Math.round(w.rating || 0))}${'☆'.repeat(5 - Math.round(w.rating || 0))}</div>
-            <div class="wmp-rate">₹${w.hourly_rate || 0}/hr</div>
-          </div>`);
+          L.marker([w.latitude, w.longitude]).addTo(map).bindPopup(`<div class="worker-map-popup"><h4>${w.name}</h4><div class="wmp-spec">${w.specialization || 'General'}</div><div class="wmp-rating">${'★'.repeat(Math.round(w.rating || 0))}${'☆'.repeat(5 - Math.round(w.rating || 0))}</div><div class="wmp-rate">₹${w.hourly_rate || 0}/hr</div></div>`);
         }
       });
       if (workers.length > 0) {
@@ -1030,7 +1034,6 @@ class App {
       const completed = bookings.filter(b => b.status === 'COMPLETED').length;
       const earned = bookings.filter(b => b.status === 'COMPLETED').reduce((s, b) => s + (b.total_price || 0), 0);
       const me = await API.getMe();
-
       document.getElementById('page-content').innerHTML = `
         <div class="availability-banner">
           <div class="availability-status">
@@ -1038,10 +1041,7 @@ class App {
             <span class="toggle-label">You are <strong>${me.availability === 'online' ? 'Online' : 'Offline'}</strong></span>
           </div>
           <div class="toggle-wrap">
-            <label class="toggle">
-              <input type="checkbox" ${me.availability === 'online' ? 'checked' : ''} onchange="app.toggleAvailability(this.checked)">
-              <span class="toggle-slider"></span>
-            </label>
+            <label class="toggle"><input type="checkbox" ${me.availability === 'online' ? 'checked' : ''} onchange="app.toggleAvailability(this.checked)"><span class="toggle-slider"></span></label>
           </div>
         </div>
         <div class="stats-grid">
@@ -1073,10 +1073,7 @@ class App {
     this.renderLayout('Job Requests', Components.loading());
     try {
       const bookings = await API.getBookings('status=PENDING');
-      document.getElementById('page-content').innerHTML = `
-        <div class="cards-grid" style="grid-template-columns:1fr">
-          ${bookings.length ? bookings.map(b => Components.bookingCard(b, 'worker')).join('') : Components.emptyState('📥', 'No pending requests', 'You have no pending job requests right now.')}
-        </div>`;
+      document.getElementById('page-content').innerHTML = `<div class="cards-grid" style="grid-template-columns:1fr">${bookings.length ? bookings.map(b => Components.bookingCard(b, 'worker')).join('') : Components.emptyState('📥', 'No pending requests', 'You have no pending job requests right now.')}</div>`;
     } catch (e) { document.getElementById('page-content').innerHTML = Components.emptyState('❌', 'Error', e.message); }
   }
 
@@ -1086,10 +1083,7 @@ class App {
       const accepted = await API.getBookings('status=ACCEPTED');
       const inProgress = await API.getBookings('status=IN_PROGRESS');
       const all = [...inProgress, ...accepted];
-      document.getElementById('page-content').innerHTML = `
-        <div class="cards-grid" style="grid-template-columns:1fr">
-          ${all.length ? all.map(b => Components.bookingCard(b, 'worker')).join('') : Components.emptyState('🔧', 'No active jobs', 'Accept a job request to see it here.')}
-        </div>`;
+      document.getElementById('page-content').innerHTML = `<div class="cards-grid" style="grid-template-columns:1fr">${all.length ? all.map(b => Components.bookingCard(b, 'worker')).join('') : Components.emptyState('🔧', 'No active jobs', 'Accept a job request to see it here.')}</div>`;
     } catch (e) { document.getElementById('page-content').innerHTML = Components.emptyState('❌', 'Error', e.message); }
   }
 
@@ -1098,11 +1092,7 @@ class App {
     try {
       const bookings = await API.getBookings();
       const history = bookings.filter(b => ['COMPLETED','REJECTED','CANCELLED'].includes(b.status));
-      document.getElementById('page-content').innerHTML = `
-        <p class="text-muted" style="margin-bottom:1rem">Click any job to view full details including payment and customer reviews.</p>
-        <div class="cards-grid" style="grid-template-columns:1fr">
-          ${history.length ? history.map(b => Components.bookingCard(b, 'worker')).join('') : Components.emptyState('📜', 'No history', 'Completed jobs will appear here.')}
-        </div>`;
+      document.getElementById('page-content').innerHTML = `<p class="text-muted" style="margin-bottom:1rem">Click any job to view full details.</p><div class="cards-grid" style="grid-template-columns:1fr">${history.length ? history.map(b => Components.bookingCard(b, 'worker')).join('') : Components.emptyState('📜', 'No history', 'Completed jobs will appear here.')}</div>`;
     } catch (e) { document.getElementById('page-content').innerHTML = Components.emptyState('❌', 'Error', e.message); }
   }
 
@@ -1113,7 +1103,6 @@ class App {
       const stats = await API.getStats();
       const maxCount = Math.max(...stats.bookingsByStatus.map(b => b.count), 1);
       const barColors = { PENDING: 'var(--warning)', ACCEPTED: 'var(--info)', IN_PROGRESS: 'var(--primary)', COMPLETED: 'var(--success)', REJECTED: 'var(--danger)', CANCELLED: 'var(--text-muted)' };
-
       document.getElementById('page-content').innerHTML = `
         <div class="stats-grid">
           ${Components.statCard('👥', stats.totalUsers, 'Total Users', 'blue')}
@@ -1126,13 +1115,16 @@ class App {
         <div class="section-header"><h2>Bookings by Status</h2></div>
         <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:2rem;box-shadow:var(--clay-shadow)">
           <div class="chart-bars">
-            ${stats.bookingsByStatus.map(b => `
-              <div class="chart-bar">
-                <div class="chart-bar-value">${b.count}</div>
-                <div class="chart-bar-fill" style="height:${(b.count / maxCount) * 100}%;background:${barColors[b.status] || 'var(--primary)'}"></div>
-                <div class="chart-bar-label">${b.status.replace('_', ' ')}</div>
-              </div>`).join('')}
+            ${stats.bookingsByStatus.map(b => `<div class="chart-bar"><div class="chart-bar-value">${b.count}</div><div class="chart-bar-fill" style="height:${(b.count / maxCount) * 100}%;background:${barColors[b.status] || 'var(--primary)'}"></div><div class="chart-bar-label">${b.status.replace('_', ' ')}</div></div>`).join('')}
           </div>
+        </div>
+        <div class="section-header"><h2>Quick Actions</h2></div>
+        <div class="admin-quick-actions">
+          <button class="btn btn-primary" onclick="app.navigate('#/admin/approvals')">✅ Worker Approvals ${stats.pendingWorkers > 0 ? `<span class="badge-pill">${stats.pendingWorkers}</span>` : ''}</button>
+          <button class="btn btn-primary" onclick="app.navigate('#/admin/services')">🧹 Manage Services</button>
+          <button class="btn btn-primary" onclick="app.navigate('#/admin/bookings')">📋 All Bookings</button>
+          <button class="btn btn-ghost" onclick="app.navigate('#/admin/workers')">👷 Manage Workers</button>
+          <button class="btn btn-ghost" onclick="app.navigate('#/admin/customers')">👥 Manage Customers</button>
         </div>`;
     } catch (e) { document.getElementById('page-content').innerHTML = Components.emptyState('❌', 'Error', e.message); }
   }
@@ -1165,23 +1157,30 @@ class App {
     this.renderLayout('Manage Workers', Components.loading());
     try {
       const users = await API.getUsers('worker');
-      const active = users.filter(u => u.status !== 'pending');
-      document.getElementById('page-content').innerHTML = active.length ? `
+      document.getElementById('page-content').innerHTML = `
+        <div class="section-header" style="margin-bottom:1.5rem">
+          <div></div>
+          <button class="btn btn-primary" onclick="app.openAdminCreateUserModal('worker')">➕ Add Worker</button>
+        </div>
+        ${users.length ? `
         <div class="data-table-wrap"><table class="data-table">
-          <thead><tr><th>Worker</th><th>Email</th><th>Specialization</th><th>Status</th><th>Actions</th></tr></thead>
-          <tbody>${active.map(u => `
+          <thead><tr><th>Worker</th><th>Email</th><th>Specialization</th><th>Rate</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>${users.map(u => `
             <tr class="clickable-row" onclick="app.openUserDetail(${u.id}, 'worker')">
               <td><div class="table-user"><div class="table-avatar">👤</div><div class="table-user-info"><h4>${u.name}</h4><span>${u.phone || ''}</span></div></div></td>
               <td>${u.email}</td>
               <td>${u.specialization || 'N/A'}</td>
+              <td>₹${u.hourly_rate || 'N/A'}/hr</td>
               <td>${Components.statusBadge(u.status)}</td>
               <td onclick="event.stopPropagation()">
+                <button class="btn btn-warning btn-sm" onclick="app.openAdminEditUserModal(${u.id},'worker')">✏️</button>
                 ${u.status === 'active' ? `<button class="btn btn-danger btn-sm" onclick="app.updateUserStatus(${u.id},'suspended')">Suspend</button>` : ''}
-                ${u.status === 'suspended' ? `<button class="btn btn-success btn-sm" onclick="app.updateUserStatus(${u.id},'active')">Activate</button>` : ''}
+                ${u.status === 'suspended' || u.status === 'pending' ? `<button class="btn btn-success btn-sm" onclick="app.updateUserStatus(${u.id},'active')">Activate</button>` : ''}
+                <button class="btn btn-danger btn-sm" onclick="app.deleteUser(${u.id},'${u.name.replace(/'/g,"\\'")}')">🗑️</button>
               </td>
             </tr>`).join('')}
           </tbody>
-        </table></div>` : Components.emptyState('👷', 'No workers', 'No workers registered yet.');
+        </table></div>` : Components.emptyState('👷', 'No workers', 'No workers registered yet.')}`;
     } catch (e) { document.getElementById('page-content').innerHTML = Components.emptyState('❌', 'Error', e.message); }
   }
 
@@ -1189,7 +1188,12 @@ class App {
     this.renderLayout('Manage Customers', Components.loading());
     try {
       const users = await API.getUsers('customer');
-      document.getElementById('page-content').innerHTML = users.length ? `
+      document.getElementById('page-content').innerHTML = `
+        <div class="section-header" style="margin-bottom:1.5rem">
+          <div></div>
+          <button class="btn btn-primary" onclick="app.openAdminCreateUserModal('customer')">➕ Add Customer</button>
+        </div>
+        ${users.length ? `
         <div class="data-table-wrap"><table class="data-table">
           <thead><tr><th>Customer</th><th>Email</th><th>Phone</th><th>Status</th><th>Actions</th></tr></thead>
           <tbody>${users.map(u => `
@@ -1199,12 +1203,14 @@ class App {
               <td>${u.phone || 'N/A'}</td>
               <td>${Components.statusBadge(u.status)}</td>
               <td onclick="event.stopPropagation()">
+                <button class="btn btn-warning btn-sm" onclick="app.openAdminEditUserModal(${u.id},'customer')">✏️</button>
                 ${u.status === 'active' ? `<button class="btn btn-danger btn-sm" onclick="app.updateUserStatus(${u.id},'inactive')">Deactivate</button>` : ''}
                 ${u.status === 'inactive' ? `<button class="btn btn-success btn-sm" onclick="app.updateUserStatus(${u.id},'active')">Activate</button>` : ''}
+                <button class="btn btn-danger btn-sm" onclick="app.deleteUser(${u.id},'${u.name.replace(/'/g,"\\'")}')">🗑️</button>
               </td>
             </tr>`).join('')}
           </tbody>
-        </table></div>` : Components.emptyState('👥', 'No customers', 'No customers registered yet.');
+        </table></div>` : Components.emptyState('👥', 'No customers', 'No customers registered yet.')}`;
     } catch (e) { document.getElementById('page-content').innerHTML = Components.emptyState('❌', 'Error', e.message); }
   }
 
@@ -1221,41 +1227,217 @@ class App {
             <option value="IN_PROGRESS">In Progress</option><option value="COMPLETED">Completed</option>
             <option value="CANCELLED">Cancelled</option><option value="REJECTED">Rejected</option>
           </select>
+          <span class="text-muted text-sm" style="margin-left:auto">${bookings.length} total bookings</span>
         </div>
         <div id="bookings-list" class="data-table-wrap"><table class="data-table">
-          <thead><tr><th>#</th><th>Service</th><th>Customer</th><th>Worker</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
-          <tbody>${bookings.map(b => `
-            <tr class="clickable-row" onclick="app.openAdminBookingDetail(${b.id})">
-              <td>${b.id}</td>
-              <td>${b.service_icon || '🧹'} ${b.service_name}</td>
-              <td>${b.customer_name}</td>
-              <td>${b.worker_name || 'Unassigned'}</td>
-              <td>${b.scheduled_date || 'TBD'}</td>
-              <td>₹${b.total_price || 0}</td>
-              <td>${Components.statusBadge(b.status)}</td>
-            </tr>`).join('')}
-          </tbody>
+          <thead><tr><th>#</th><th>Service</th><th>Customer</th><th>Worker</th><th>Date</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>${this._renderAdminBookingRows(bookings)}</tbody>
         </table></div>`;
     } catch (e) { document.getElementById('page-content').innerHTML = Components.emptyState('❌', 'Error', e.message); }
+  }
+
+  _renderAdminBookingRows(bookings) {
+    return bookings.map(b => `
+      <tr class="clickable-row" onclick="app.openAdminBookingDetail(${b.id})">
+        <td>${b.id}</td>
+        <td>${b.service_icon || '🧹'} ${b.service_name}</td>
+        <td>${b.customer_name}</td>
+        <td>${b.worker_name || 'Unassigned'}</td>
+        <td>${b.scheduled_date || 'TBD'}</td>
+        <td>₹${b.total_price || 0}</td>
+        <td>${Components.statusBadge(b.status)}</td>
+        <td onclick="event.stopPropagation()">
+          <button class="btn btn-warning btn-sm" onclick="app.openAdminEditBookingModal(${b.id})">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="app.adminDeleteBooking(${b.id})">🗑️</button>
+        </td>
+      </tr>`).join('');
   }
 
   filterAdminBookings() {
     const filter = document.getElementById('booking-filter').value;
     const filtered = filter ? this._bookings.filter(b => b.status === filter) : this._bookings;
     document.getElementById('bookings-list').innerHTML = `<table class="data-table">
-      <thead><tr><th>#</th><th>Service</th><th>Customer</th><th>Worker</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
-      <tbody>${filtered.map(b => `
-        <tr class="clickable-row" onclick="app.openAdminBookingDetail(${b.id})">
-          <td>${b.id}</td>
-          <td>${b.service_icon || '🧹'} ${b.service_name}</td>
-          <td>${b.customer_name}</td>
-          <td>${b.worker_name || 'Unassigned'}</td>
-          <td>${b.scheduled_date || 'TBD'}</td>
-          <td>₹${b.total_price || 0}</td>
-          <td>${Components.statusBadge(b.status)}</td>
-        </tr>`).join('')}
-      </tbody>
+      <thead><tr><th>#</th><th>Service</th><th>Customer</th><th>Worker</th><th>Date</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>${this._renderAdminBookingRows(filtered)}</tbody>
     </table>`;
+  }
+
+  /* ═══════════════ ADMIN MANAGE SERVICES ═══════════════ */
+  async renderManageServices() {
+    this.renderLayout('Manage Services', Components.loading());
+    try {
+      const services = await API.getServices();
+      document.getElementById('page-content').innerHTML = `
+        <div class="section-header" style="margin-bottom:1.5rem">
+          <p class="text-muted">Manage all cleaning services available on the platform.</p>
+          <button class="btn btn-primary" onclick="app.openServiceModal()">➕ Add Service</button>
+        </div>
+        <div class="data-table-wrap"><table class="data-table">
+          <thead><tr><th>Icon</th><th>Name</th><th>Category</th><th>Price</th><th>Duration</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="services-tbody">${this._renderServiceRows(services)}</tbody>
+        </table></div>`;
+      this._services = services;
+    } catch (e) { document.getElementById('page-content').innerHTML = Components.emptyState('❌', 'Error', e.message); }
+  }
+
+  _renderServiceRows(services) {
+    return services.map(s => `
+      <tr>
+        <td style="font-size:1.5rem">${s.icon || '🧹'}</td>
+        <td><strong>${s.name}</strong><br><span style="font-size:.78rem;color:var(--text-muted)">${(s.description || '').substring(0, 60)}${s.description && s.description.length > 60 ? '…' : ''}</span></td>
+        <td><span class="service-category-tag">${s.category || 'General'}</span></td>
+        <td><strong class="gradient-text">₹${s.base_price}</strong></td>
+        <td>${s.duration_hours}h</td>
+        <td>${s.active ? '<span class="status-badge active">Active</span>' : '<span class="status-badge inactive">Inactive</span>'}</td>
+        <td>
+          <button class="btn btn-warning btn-sm" onclick="app.openServiceModal(${s.id})">✏️ Edit</button>
+          <button class="btn btn-ghost btn-sm" onclick="app.toggleServiceStatus(${s.id}, ${s.active})">${s.active ? '🔴 Deactivate' : '🟢 Activate'}</button>
+          <button class="btn btn-danger btn-sm" onclick="app.deleteService(${s.id}, '${s.name.replace(/'/g,"\\'")}')">🗑️ Delete</button>
+        </td>
+      </tr>`).join('');
+  }
+
+  async openServiceModal(serviceId = null) {
+    let service = null;
+    if (serviceId) {
+      try {
+        const services = await API.getServices();
+        service = services.find(s => s.id === serviceId);
+      } catch {}
+    }
+
+    const isEdit = !!service;
+    const body = `
+      <form id="service-form" onsubmit="app.submitService(event, ${serviceId || 'null'})">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Service Icon (emoji)</label>
+            <input class="form-input" name="icon" value="${service?.icon || '🧹'}" placeholder="🧹" maxlength="4" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <select class="form-select" name="category">
+              ${['Residential','Commercial','Specialty','General'].map(c => `<option value="${c}" ${(service?.category || 'Residential') === c ? 'selected' : ''}>${c}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Service Name *</label>
+          <input class="form-input" name="name" value="${service?.name || ''}" placeholder="e.g. Standard House Cleaning" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea class="form-textarea" name="description" rows="3" placeholder="Describe what this service includes...">${service?.description || ''}</textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Base Price (₹) *</label>
+            <input class="form-input" type="number" name="base_price" value="${service?.base_price || ''}" placeholder="1500" min="0" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Duration (hours) *</label>
+            <input class="form-input" type="number" name="duration_hours" value="${service?.duration_hours || ''}" placeholder="2" min="0.5" step="0.5" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-select" name="active">
+            <option value="1" ${!service || service.active ? 'selected' : ''}>Active (visible to customers)</option>
+            <option value="0" ${service && !service.active ? 'selected' : ''}>Inactive (hidden from customers)</option>
+          </select>
+        </div>
+      </form>`;
+    const footer = `<button class="btn btn-ghost" onclick="app.closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="document.getElementById('service-form').requestSubmit()">${isEdit ? '💾 Save Changes' : '➕ Create Service'}</button>`;
+    document.body.insertAdjacentHTML('beforeend', Components.modal(isEdit ? `Edit Service: ${service.name}` : 'Add New Service', body, footer));
+  }
+
+  async submitService(e, serviceId) {
+    e.preventDefault();
+    const form = new FormData(e.target);
+    const data = Object.fromEntries(form.entries());
+    data.base_price = +data.base_price;
+    data.duration_hours = +data.duration_hours;
+    data.active = data.active === '1';
+    try {
+      if (serviceId) {
+        await API.updateService(serviceId, data);
+        Components.toast('Service updated!', 'success');
+      } else {
+        await API.createService(data);
+        Components.toast('Service created!', 'success');
+      }
+      this.closeModal();
+      await this.renderManageServices();
+    } catch (e) { Components.toast(e.message, 'error'); }
+  }
+
+  async toggleServiceStatus(serviceId, currentActive) {
+    try {
+      await API.updateService(serviceId, { active: !currentActive });
+      Components.toast(`Service ${!currentActive ? 'activated' : 'deactivated'}!`, 'success');
+      await this.renderManageServices();
+    } catch (e) { Components.toast(e.message, 'error'); }
+  }
+
+  async deleteService(serviceId, serviceName) {
+    if (!confirm(`Delete service "${serviceName}"? If it has bookings, it will be deactivated instead.`)) return;
+    try {
+      const result = await API.deleteService(serviceId);
+      Components.toast(result.note || 'Service deleted!', 'success');
+      await this.renderManageServices();
+    } catch (e) { Components.toast(e.message, 'error'); }
+  }
+
+  /* ═══════════════ ADMIN CREATE USER ═══════════════ */
+  async openAdminCreateUserModal(role) {
+    const isWorker = role === 'worker';
+    const body = `
+      <form id="admin-create-user-form" onsubmit="app.submitAdminCreateUser(event, '${role}')">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Full Name *</label><input class="form-input" name="name" required placeholder="Full name"></div>
+          <div class="form-group"><label class="form-label">Email *</label><input class="form-input" type="email" name="email" required placeholder="email@example.com"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Password *</label><input class="form-input" type="password" name="password" required minlength="6" placeholder="Min 6 characters"></div>
+          <div class="form-group"><label class="form-label">Phone</label><input class="form-input" name="phone" placeholder="+91 98765 43210"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Status</label>
+          <select class="form-select" name="status">
+            <option value="active">Active</option>
+            <option value="pending">Pending</option>
+            <option value="suspended">Suspended</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Address</label><input class="form-input" name="address" placeholder="City, State"></div>
+        ${isWorker ? `
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Specialization</label><input class="form-input" name="specialization" placeholder="e.g. House Cleaning"></div>
+          <div class="form-group"><label class="form-label">Hourly Rate (₹)</label><input class="form-input" type="number" name="hourly_rate" min="0" placeholder="500"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Bio</label><textarea class="form-textarea" name="bio" rows="2" placeholder="Worker bio..."></textarea></div>` : ''}
+      </form>`;
+    const footer = `<button class="btn btn-ghost" onclick="app.closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="document.getElementById('admin-create-user-form').requestSubmit()">➕ Create ${role === 'worker' ? 'Worker' : 'Customer'}</button>`;
+    document.body.insertAdjacentHTML('beforeend', Components.modal(`Create New ${role === 'worker' ? 'Worker' : 'Customer'}`, body, footer));
+  }
+
+  async submitAdminCreateUser(e, role) {
+    e.preventDefault();
+    const form = new FormData(e.target);
+    const data = Object.fromEntries(form.entries());
+    data.role = role;
+    if (data.hourly_rate) data.hourly_rate = +data.hourly_rate;
+    try {
+      // Use register but then also set the status correctly via admin update
+      const result = await API.register(data);
+      if (data.status && data.status !== (role === 'worker' ? 'pending' : 'active')) {
+        await API.adminUpdateUser(result.user.id, { status: data.status });
+      }
+      this.closeModal();
+      Components.toast('User created successfully!', 'success');
+      this.route();
+    } catch (e) { Components.toast(e.message, 'error'); }
   }
 
   /* ═══════════════ ACTIONS ═══════════════ */
@@ -1272,6 +1454,7 @@ class App {
     try {
       await API.updateUserStatus(id, status);
       Components.toast(`User ${status} successfully!`, 'success');
+      this.closeDrawer();
       this.route();
     } catch (e) { Components.toast(e.message, 'error'); }
   }
@@ -1282,7 +1465,6 @@ class App {
       const services = await API.getServices();
       const workers = await API.getNearbyWorkers(this.user.latitude || 20.5937, this.user.longitude || 78.9629, 100);
       const onlineWorkers = workers.filter(w => w.availability === 'online');
-
       const body = `
         <form id="booking-form" onsubmit="app.submitBooking(event)">
           <div class="form-group">
@@ -1310,10 +1492,8 @@ class App {
             <div class="payment-summary-row total"><span>Total</span><span id="booking-total">₹0</span></div>
           </div>
         </form>`;
-
       const footer = `<button class="btn btn-ghost" onclick="app.closeModal()">Cancel</button>
         <button class="btn btn-primary" onclick="document.getElementById('booking-form').requestSubmit()">Book Now</button>`;
-
       document.body.insertAdjacentHTML('beforeend', Components.modal('Book a Service', body, footer));
       this.updateBookingPrice();
     } catch (e) { Components.toast(e.message, 'error'); }
@@ -1336,11 +1516,7 @@ class App {
     const sel = document.querySelector('[name="service_id"]');
     const price = sel.options[sel.selectedIndex]?.dataset?.price || 0;
     try {
-      await API.createBooking({
-        service_id: +form.get('service_id'), worker_id: +form.get('worker_id'),
-        scheduled_date: form.get('scheduled_date'), scheduled_time: form.get('scheduled_time'),
-        address: form.get('address'), notes: form.get('notes'), total_price: +price
-      });
+      await API.createBooking({ service_id: +form.get('service_id'), worker_id: +form.get('worker_id'), scheduled_date: form.get('scheduled_date'), scheduled_time: form.get('scheduled_time'), address: form.get('address'), notes: form.get('notes'), total_price: +price });
       this.closeModal();
       Components.toast('Booking created successfully!', 'success');
       await this.loadNotifications();
@@ -1441,7 +1617,6 @@ class App {
             <span class="role-badge ${user.role} profile-role">${user.role}</span>
             <div class="profile-email">${user.email}</div>
           </div>
-
           <div class="profile-section">
             <div class="profile-section-title"><div class="ps-icon">👤</div> Personal Information</div>
             <form id="profile-form" onsubmit="app.saveProfile(event)">
@@ -1458,13 +1633,11 @@ class App {
               <button type="submit" class="btn btn-primary btn-lg" id="save-profile-btn">💾 Save Changes</button>
             </form>
           </div>
-
           <div class="profile-section">
             <div class="profile-section-title"><div class="ps-icon">📍</div> Location</div>
             ${Components.locationPicker('profile-loc', user.address || '', user.latitude || '', user.longitude || '')}
             <button class="btn btn-primary" style="margin-top:1rem" onclick="app.saveProfileLocation()">📍 Update Location</button>
           </div>
-
           <div class="profile-section">
             <div class="profile-section-title"><div class="ps-icon">🔒</div> Change Password</div>
             <form id="password-form" onsubmit="app.changePassword(event)">
