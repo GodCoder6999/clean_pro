@@ -70,11 +70,11 @@ const Components = {
 
   /* ── Worker Card ──────────────────────────────────────── */
   workerCard(worker, showBook = true) {
-    const avatarContent = worker.avatar && worker.avatar.startsWith('data:') 
+    const avatarContent = worker.avatar && worker.avatar.startsWith('data:')
       ? `<img src="${worker.avatar}" alt="${worker.name}" class="worker-avatar-img">`
       : (worker.avatar || '👤');
     return `
-      <div class="worker-card" style="animation-delay:${worker._delay || 0}s">
+      <div class="worker-card clickable-card" style="animation-delay:${worker._delay || 0}s" onclick="app.openWorkerDetail(${worker.id})">
         <div class="worker-avatar">
           ${avatarContent}
           ${worker.availability === 'online' ? '<div class="online-dot"></div>' : ''}
@@ -86,42 +86,43 @@ const Components = {
           <span>💰 ₹${worker.hourly_rate || 0}/hr</span>
           ${worker.distance !== null && worker.distance !== undefined ? `<span>📍 ${worker.distance.toFixed(1)} km</span>` : ''}
         </div>
-        ${showBook ? `<button class="btn btn-primary btn-block" onclick="app.openBookingModal(null, ${worker.id})">Book Worker</button>` : ''}
+        <div class="worker-card-hint">👆 Click to view profile</div>
+        ${showBook ? `<button class="btn btn-primary btn-block" onclick="event.stopPropagation();app.openBookingModal(null, ${worker.id})">Book Worker</button>` : ''}
       </div>
     `;
   },
 
   /* ── Booking Card ─────────────────────────────────────── */
   bookingCard(booking, role) {
-    const person = role === 'customer' 
+    const person = role === 'customer'
       ? { label: 'Worker', name: booking.worker_name || 'Unassigned' }
       : { label: 'Customer', name: booking.customer_name || 'Unknown' };
-    
+
     let actions = '';
     if (role === 'customer') {
       if (['PENDING','ACCEPTED'].includes(booking.status))
-        actions += `<button class="btn btn-danger btn-sm" onclick="app.updateBooking(${booking.id},'CANCELLED')">Cancel</button>`;
+        actions += `<button class="btn btn-danger btn-sm" onclick="event.stopPropagation();app.updateBooking(${booking.id},'CANCELLED')">Cancel</button>`;
       if (booking.status === 'COMPLETED')
-        actions += `<button class="btn btn-primary btn-sm" onclick="app.openReviewModal(${booking.id}, ${booking.worker_id})">Review</button>`;
+        actions += `<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();app.openReviewModal(${booking.id}, ${booking.worker_id})">Review</button>`;
       if (booking.status === 'COMPLETED')
-        actions += `<button class="btn btn-success btn-sm" onclick="app.openPaymentModal(${booking.id}, ${booking.total_price})">Pay</button>`;
+        actions += `<button class="btn btn-success btn-sm" onclick="event.stopPropagation();app.openPaymentModal(${booking.id}, ${booking.total_price})">Pay</button>`;
     } else if (role === 'worker') {
       if (booking.status === 'PENDING') {
-        actions += `<button class="btn btn-success btn-sm" onclick="app.updateBooking(${booking.id},'ACCEPTED')">Accept</button>`;
-        actions += `<button class="btn btn-danger btn-sm" onclick="app.updateBooking(${booking.id},'REJECTED')">Reject</button>`;
+        actions += `<button class="btn btn-success btn-sm" onclick="event.stopPropagation();app.updateBooking(${booking.id},'ACCEPTED')">Accept</button>`;
+        actions += `<button class="btn btn-danger btn-sm" onclick="event.stopPropagation();app.updateBooking(${booking.id},'REJECTED')">Reject</button>`;
       }
       if (booking.status === 'ACCEPTED')
-        actions += `<button class="btn btn-primary btn-sm" onclick="app.updateBooking(${booking.id},'IN_PROGRESS')">Start</button>`;
+        actions += `<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();app.updateBooking(${booking.id},'IN_PROGRESS')">Start</button>`;
       if (booking.status === 'IN_PROGRESS')
-        actions += `<button class="btn btn-success btn-sm" onclick="app.updateBooking(${booking.id},'COMPLETED')">Complete</button>`;
+        actions += `<button class="btn btn-success btn-sm" onclick="event.stopPropagation();app.updateBooking(${booking.id},'COMPLETED')">Complete</button>`;
     }
 
     return `
-      <div class="booking-card">
+      <div class="booking-card clickable-card" onclick="app.openBookingDetail(${booking.id}, '${role}')">
         <div class="booking-card-header">
           <div>
             <h3>${booking.service_icon || '🧹'} ${booking.service_name}</h3>
-            <span class="booking-id">Booking #${booking.id}</span>
+            <span class="booking-id">Booking #${booking.id} · <span class="booking-click-hint">Click for details</span></span>
           </div>
           ${this.statusBadge(booking.status)}
         </div>
@@ -133,7 +134,7 @@ const Components = {
         </div>
         <div class="booking-card-footer">
           <span class="booking-price">₹${booking.total_price || 0}</span>
-          <div class="booking-actions">${actions}</div>
+          <div class="booking-actions" onclick="event.stopPropagation()">${actions}</div>
         </div>
       </div>
     `;
@@ -211,12 +212,10 @@ const Components = {
         <div class="location-input-wrap">
           <div class="location-search-box">
             <span class="location-search-icon">📍</span>
-            <input class="form-input location-autocomplete" 
-                   type="text" 
-                   id="${id}-address" 
-                   placeholder="Type your address (e.g. Andheri, Mumbai)" 
-                   value="${currentAddress || ''}"
-                   autocomplete="off"
+            <input class="form-input location-autocomplete"
+                   type="text" id="${id}-address"
+                   placeholder="Type your address (e.g. Andheri, Mumbai)"
+                   value="${currentAddress || ''}" autocomplete="off"
                    oninput="app.handleLocationAutocomplete('${id}', this.value)">
             <div class="autocomplete-dropdown" id="${id}-suggestions"></div>
           </div>
