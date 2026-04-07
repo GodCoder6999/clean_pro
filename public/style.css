@@ -1253,3 +1253,80 @@ h4 { font-size:1.1rem; font-weight:600; }
   .cp-fab { width: 52px; height: 52px; }
   .cp-fab-icon { font-size: 24px; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Mobile Bottom Navigation (Responsive adaptation)
+   ═══════════════════════════════════════════════════════════ */
+
+.mobile-bottom-nav {
+  display: none;
+}
+
+@media(max-width: 768px) {
+  /* Hide sidebar toggle on mobile since we have bottom nav */
+  .mobile-toggle {
+    display: none !important;
+  }
+  
+  /* Disable sidebar completely on mobile */
+  .sidebar, .sidebar-backdrop {
+    display: none !important;
+  }
+  
+  /* Add padding to layout to avoid overlap with bottom nav */
+  .layout {
+    padding-bottom: 75px; 
+  }
+
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 65px;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border);
+    z-index: 1000;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 10px;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .mob-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.65rem;
+    font-weight: 500;
+    gap: 4px;
+    width: 20%; 
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .mob-nav-item.active {
+    color: var(--primary);
+  }
+
+  .mob-nav-item.active .mob-nav-icon {
+    transform: translateY(-2px);
+    color: var(--primary);
+  }
+
+  .mob-nav-icon {
+    font-size: 1.3rem;
+    transition: transform 0.2s;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+  }
+
+  /* Make chat button appear above bottom nav */
+  #cp-chat {
+    bottom: 85px;
+  }
+}

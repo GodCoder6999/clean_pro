@@ -325,7 +325,44 @@ class App {
         </header>
         <div class="page-content" id="page-content">${content}</div>
       </main>
+      <nav class="mobile-bottom-nav">${this.renderMobileNavItems()}</nav>
     </div>`;
+  }
+
+  renderMobileNavItems() {
+    const r = this.user.role;
+    const h = window.location.hash || '#/';
+    const item = (hash, icon, label) => {
+      const active = (h === hash || (h === '#/' && hash === '#/dashboard')) ? 'active' : '';
+      return `<a class="mob-nav-item ${active}" onclick="app.navigate('${hash}')">
+                <span class="mob-nav-icon">${icon}</span>
+                <span class="mob-nav-label">${label}</span>
+              </a>`;
+    };
+
+    if (r === 'customer') return `
+      ${item('#/dashboard','📊','Home')}
+      ${item('#/services','🧹','Services')}
+      ${item('#/workers','👷','Workers')}
+      ${item('#/bookings','📋','Bookings')}
+      ${item('#/profile','👤','Account')}`;
+
+    if (r === 'worker') {
+      const pending = this.user.status === 'pending';
+      return `
+      ${item('#/dashboard','📊','Home')}
+      ${!pending ? item('#/worker/requests','📥','Requests') : ''}
+      ${!pending ? item('#/worker/active','🔧','Active') : ''}
+      ${!pending ? item('#/worker/history','📜','History') : ''}
+      ${item('#/profile','👤','Account')}`;
+    }
+
+    return `
+      ${item('#/dashboard','📊','Overview')}
+      ${item('#/admin/approvals','✅','Approvals')}
+      ${item('#/admin/workers','👷','Workers')}
+      ${item('#/admin/bookings','📋','Bookings')}
+      ${item('#/profile','👤','Account')}`;
   }
 
   renderNavItems() {
@@ -1645,6 +1682,9 @@ class App {
               <div class="form-group"><label class="form-label">New Password</label><input class="form-input" type="password" name="new_password" required minlength="6"></div>
               <button type="submit" class="btn btn-ghost">🔒 Change Password</button>
             </form>
+          </div>
+          <div class="profile-section" style="margin-top: 2rem;">
+            <button class="btn btn-danger btn-block btn-lg" onclick="app.logout()">🚪 Sign Out</button>
           </div>
         </div>`;
       this._initProfileMap(user);
