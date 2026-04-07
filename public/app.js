@@ -30,19 +30,23 @@ class App {
   navigate(hash) { window.location.hash = hash; }
 
   async route() {
-    const hash = window.location.hash || '#/login';
+    const hash = window.location.hash || '#/';
     const path = hash.replace('#', '');
 
-    if (!this.user && path !== '/login' && path !== '/register') {
+    /* Public routes accessible without login */
+    const publicRoutes = ['/', '/login', '/register'];
+
+    if (!this.user && !publicRoutes.includes(path)) {
       return this.navigate('#/login');
     }
-    if (this.user && (path === '/login' || path === '/register')) {
+    if (this.user && (path === '/login' || path === '/register' || path === '/')) {
       return this.navigate('#/dashboard');
     }
 
     const appEl = document.getElementById('app');
 
     switch (path) {
+      case '/': appEl.innerHTML = this.renderLanding(); this.initLandingAnimations(); break;
       case '/login': appEl.innerHTML = this.renderAuth('login'); break;
       case '/register': appEl.innerHTML = this.renderAuth('register'); break;
       case '/dashboard':
@@ -63,6 +67,559 @@ class App {
       case '/admin/bookings': await this.renderAllBookings(); break;
       default: this.navigate('#/dashboard');
     }
+  }
+
+  /* ═══════════════ LANDING PAGE ═══════════════ */
+  renderLanding() {
+    return `
+    <div class="landing-page">
+      <!-- NAVBAR -->
+      <nav class="landing-nav" id="landing-nav">
+        <div class="landing-container nav-inner">
+          <a class="nav-brand" onclick="app.navigate('#/')">
+            <span class="nav-brand-icon">🧹</span>
+            <span class="nav-brand-text">CleanerPro</span>
+          </a>
+          <div class="nav-links" id="nav-links">
+            <a class="nav-link" href="#features-section">Features</a>
+            <a class="nav-link" href="#how-section">How It Works</a>
+            <a class="nav-link" href="#services-section">Services</a>
+            <a class="nav-link" href="#pricing-section">Pricing</a>
+            <a class="nav-link" href="#faq-section">FAQ</a>
+          </div>
+          <div class="nav-actions">
+            <button class="btn btn-ghost btn-sm" onclick="app.navigate('#/login')">Sign In</button>
+            <button class="btn btn-primary btn-sm" onclick="app.navigate('#/register')">Get Started</button>
+            <button class="nav-mobile-btn" id="nav-mobile-btn" onclick="document.getElementById('nav-links').classList.toggle('show')">
+              <span></span><span></span><span></span>
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <!-- HERO -->
+      <section class="hero-section">
+        <div class="hero-particles">
+          <div class="particle p1"></div>
+          <div class="particle p2"></div>
+          <div class="particle p3"></div>
+          <div class="particle p4"></div>
+          <div class="particle p5"></div>
+        </div>
+        <div class="landing-container hero-inner">
+          <div class="hero-content">
+            <div class="hero-badge animate-on-scroll">✨ #1 Rated Cleaning Platform</div>
+            <h1 class="hero-title animate-on-scroll">
+              Professional Cleaning
+              <span class="hero-gradient">Made Simple</span>
+            </h1>
+            <p class="hero-subtitle animate-on-scroll">
+              Connect with trusted, vetted cleaning professionals in your area. Book in seconds, track in real-time, and enjoy a sparkling clean space — every time.
+            </p>
+            <div class="hero-cta animate-on-scroll">
+              <button class="btn btn-primary btn-lg hero-btn-primary" onclick="app.navigate('#/register')">
+                🚀 Start Free Today
+              </button>
+              <button class="btn btn-ghost btn-lg hero-btn-secondary" onclick="document.getElementById('how-section').scrollIntoView({behavior:'smooth'})">
+                ▶ See How It Works
+              </button>
+            </div>
+            <div class="hero-trust animate-on-scroll">
+              <div class="hero-avatars">
+                <div class="hero-avatar" style="background:linear-gradient(135deg,#3b82f6,#8b5cf6)">J</div>
+                <div class="hero-avatar" style="background:linear-gradient(135deg,#10b981,#06b6d4)">M</div>
+                <div class="hero-avatar" style="background:linear-gradient(135deg,#f59e0b,#ef4444)">S</div>
+                <div class="hero-avatar" style="background:linear-gradient(135deg,#ec4899,#8b5cf6)">A</div>
+              </div>
+              <div class="hero-trust-text">
+                <div class="hero-trust-stars">★★★★★</div>
+                <span>Trusted by <strong>2,500+</strong> happy customers</span>
+              </div>
+            </div>
+          </div>
+          <div class="hero-visual animate-on-scroll">
+            <div class="hero-card-stack">
+              <div class="hero-float-card card-1">
+                <div class="hfc-icon green">✅</div>
+                <div><strong>Booking Confirmed</strong><br><span class="text-sm text-muted">Deep Clean · 2:00 PM</span></div>
+              </div>
+              <div class="hero-float-card card-2">
+                <div class="hfc-icon blue">👷</div>
+                <div><strong>Sarah M.</strong><br><span class="text-sm text-muted">★★★★★ · 5.0 rating</span></div>
+              </div>
+              <div class="hero-float-card card-3">
+                <div class="hfc-icon violet">📍</div>
+                <div><strong>Worker Arriving</strong><br><span class="text-sm text-muted">ETA: 5 minutes</span></div>
+              </div>
+              <div class="hero-phone-mockup">
+                <div class="phone-header">
+                  <span class="phone-status-bar"></span>
+                  <div class="phone-app-bar">
+                    <span class="phone-brand">🧹 CleanerPro</span>
+                    <span class="phone-notif">🔔</span>
+                  </div>
+                </div>
+                <div class="phone-body">
+                  <div class="phone-welcome">Welcome back! 👋</div>
+                  <div class="phone-stat-row">
+                    <div class="phone-stat"><span class="phone-stat-val">3</span><span class="phone-stat-lbl">Active</span></div>
+                    <div class="phone-stat"><span class="phone-stat-val">12</span><span class="phone-stat-lbl">Completed</span></div>
+                    <div class="phone-stat"><span class="phone-stat-val">4.9</span><span class="phone-stat-lbl">Rating</span></div>
+                  </div>
+                  <div class="phone-service-list">
+                    <div class="phone-service-item"><span>🏠</span> House Cleaning</div>
+                    <div class="phone-service-item"><span>🪟</span> Window Cleaning</div>
+                    <div class="phone-service-item"><span>🧽</span> Deep Clean</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="hero-wave">
+          <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+            <path d="M0,60 C360,120 720,0 1080,60 C1260,90 1380,60 1440,60 L1440,120 L0,120 Z" fill="var(--bg-primary)"/>
+          </svg>
+        </div>
+      </section>
+
+      <!-- LOGOS / SOCIAL PROOF -->
+      <section class="logos-section">
+        <div class="landing-container">
+          <p class="logos-label">Trusted by professionals and businesses worldwide</p>
+          <div class="logos-row">
+            <div class="logo-item">🏢 PropertyMax</div>
+            <div class="logo-item">🏨 HotelGroup</div>
+            <div class="logo-item">🏠 HomeBliss</div>
+            <div class="logo-item">🏗️ UrbanNest</div>
+            <div class="logo-item">🏘️ ClearView</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FEATURES -->
+      <section class="features-section" id="features-section">
+        <div class="landing-container">
+          <div class="section-label animate-on-scroll">Why CleanerPro</div>
+          <h2 class="section-title animate-on-scroll">Everything You Need in <span class="hero-gradient">One Platform</span></h2>
+          <p class="section-subtitle animate-on-scroll">A powerful marketplace connecting customers with professional cleaners — packed with features that make managing cleaning services effortless.</p>
+          <div class="features-grid">
+            <div class="feature-card animate-on-scroll">
+              <div class="feature-icon-wrap blue"><span>🔍</span></div>
+              <h3>Smart Worker Discovery</h3>
+              <p>Find vetted professionals nearby using GPS-powered search. Filter by specialization, rating, and availability instantly.</p>
+            </div>
+            <div class="feature-card animate-on-scroll">
+              <div class="feature-icon-wrap green"><span>📅</span></div>
+              <h3>Instant Booking</h3>
+              <p>Book services in seconds with our streamlined flow. Pick your service, choose a time, and get instant confirmation.</p>
+            </div>
+            <div class="feature-card animate-on-scroll">
+              <div class="feature-icon-wrap violet"><span>📊</span></div>
+              <h3>Real-Time Tracking</h3>
+              <p>Track every booking from request to completion. Get live status updates and notifications at every step.</p>
+            </div>
+            <div class="feature-card animate-on-scroll">
+              <div class="feature-icon-wrap yellow"><span>💳</span></div>
+              <h3>Secure Payments</h3>
+              <p>Multiple payment options including credit card, debit card, and PayPal. Every transaction is encrypted and secure.</p>
+            </div>
+            <div class="feature-card animate-on-scroll">
+              <div class="feature-icon-wrap cyan"><span>⭐</span></div>
+              <h3>Reviews & Ratings</h3>
+              <p>Make informed decisions with genuine customer reviews. Our rating system ensures quality and accountability.</p>
+            </div>
+            <div class="feature-card animate-on-scroll">
+              <div class="feature-icon-wrap red"><span>🔔</span></div>
+              <h3>Smart Notifications</h3>
+              <p>Never miss an update. Real-time alerts for bookings, payments, reviews, and worker status changes.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- HOW IT WORKS -->
+      <section class="how-section" id="how-section">
+        <div class="landing-container">
+          <div class="section-label animate-on-scroll">Simple Process</div>
+          <h2 class="section-title animate-on-scroll">How It Works in <span class="hero-gradient">3 Easy Steps</span></h2>
+          <p class="section-subtitle animate-on-scroll">Getting your space cleaned has never been this simple. Our streamlined process gets you from booking to a sparkling clean home in minutes.</p>
+          <div class="steps-row">
+            <div class="step-card animate-on-scroll">
+              <div class="step-number">01</div>
+              <div class="step-icon">📝</div>
+              <h3>Create Your Account</h3>
+              <p>Sign up in seconds as a customer or cleaning professional. It's completely free to get started.</p>
+            </div>
+            <div class="step-connector animate-on-scroll"><div class="step-line"></div><div class="step-arrow">→</div></div>
+            <div class="step-card animate-on-scroll">
+              <div class="step-number">02</div>
+              <div class="step-icon">🔍</div>
+              <h3>Find & Book</h3>
+              <p>Browse services, find top-rated workers near you, select your preferred date and time, and book instantly.</p>
+            </div>
+            <div class="step-connector animate-on-scroll"><div class="step-line"></div><div class="step-arrow">→</div></div>
+            <div class="step-card animate-on-scroll">
+              <div class="step-number">03</div>
+              <div class="step-icon">✨</div>
+              <h3>Enjoy & Review</h3>
+              <p>Sit back while our professionals work their magic. Pay securely and leave a review when you're satisfied.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SERVICES PREVIEW -->
+      <section class="services-preview-section" id="services-section">
+        <div class="landing-container">
+          <div class="section-label animate-on-scroll">Our Services</div>
+          <h2 class="section-title animate-on-scroll">Professional Cleaning for <span class="hero-gradient">Every Need</span></h2>
+          <p class="section-subtitle animate-on-scroll">From routine house cleaning to specialized deep cleans, our platform connects you with experts in every cleaning category.</p>
+          <div class="services-preview-grid">
+            <div class="service-preview-card animate-on-scroll">
+              <div class="spc-icon">🏠</div>
+              <h3>House Cleaning</h3>
+              <p>Complete home cleaning including dusting, vacuuming, mopping, and surface sanitization.</p>
+              <div class="spc-price">From <strong>$50</strong></div>
+            </div>
+            <div class="service-preview-card animate-on-scroll">
+              <div class="spc-icon">🧽</div>
+              <h3>Deep Cleaning</h3>
+              <p>Thorough top-to-bottom cleaning reaching every corner, behind appliances, and hidden areas.</p>
+              <div class="spc-price">From <strong>$120</strong></div>
+            </div>
+            <div class="service-preview-card animate-on-scroll">
+              <div class="spc-icon">🪟</div>
+              <h3>Window Cleaning</h3>
+              <p>Crystal-clear windows inside and out. Professional equipment for streak-free results.</p>
+              <div class="spc-price">From <strong>$40</strong></div>
+            </div>
+            <div class="service-preview-card animate-on-scroll">
+              <div class="spc-icon">🏢</div>
+              <h3>Office Cleaning</h3>
+              <p>Keep your workspace pristine. Regular or one-time cleaning for offices of all sizes.</p>
+              <div class="spc-price">From <strong>$80</strong></div>
+            </div>
+            <div class="service-preview-card animate-on-scroll">
+              <div class="spc-icon">🧹</div>
+              <h3>Move-In/Out Clean</h3>
+              <p>Moving? Leave your old place spotless or start fresh in your new one. Bond-back guarantee.</p>
+              <div class="spc-price">From <strong>$150</strong></div>
+            </div>
+            <div class="service-preview-card animate-on-scroll">
+              <div class="spc-icon">🛋️</div>
+              <h3>Carpet & Upholstery</h3>
+              <p>Professional steam cleaning and stain removal for carpets, sofas, and upholstery.</p>
+              <div class="spc-price">From <strong>$60</strong></div>
+            </div>
+          </div>
+          <div style="text-align:center;margin-top:2.5rem" class="animate-on-scroll">
+            <button class="btn btn-primary btn-lg" onclick="app.navigate('#/register')">Browse All Services →</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- STATS -->
+      <section class="landing-stats-section">
+        <div class="landing-container">
+          <div class="landing-stats-grid">
+            <div class="landing-stat animate-on-scroll">
+              <div class="landing-stat-value">2,500+</div>
+              <div class="landing-stat-label">Happy Customers</div>
+            </div>
+            <div class="landing-stat animate-on-scroll">
+              <div class="landing-stat-value">500+</div>
+              <div class="landing-stat-label">Verified Workers</div>
+            </div>
+            <div class="landing-stat animate-on-scroll">
+              <div class="landing-stat-value">10,000+</div>
+              <div class="landing-stat-label">Jobs Completed</div>
+            </div>
+            <div class="landing-stat animate-on-scroll">
+              <div class="landing-stat-value">4.9★</div>
+              <div class="landing-stat-label">Average Rating</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TESTIMONIALS -->
+      <section class="testimonials-section">
+        <div class="landing-container">
+          <div class="section-label animate-on-scroll">Testimonials</div>
+          <h2 class="section-title animate-on-scroll">What Our <span class="hero-gradient">Customers Say</span></h2>
+          <p class="section-subtitle animate-on-scroll">Don't just take our word for it — hear from the thousands of happy customers and professionals who use CleanerPro every day.</p>
+          <div class="testimonials-grid">
+            <div class="testimonial-card animate-on-scroll">
+              <div class="testimonial-stars">★★★★★</div>
+              <p class="testimonial-text">"CleanerPro completely transformed how I manage home cleaning. Booking is effortless and the cleaners are always professional. I've never looked back!"</p>
+              <div class="testimonial-author">
+                <div class="testimonial-avatar" style="background:linear-gradient(135deg,#3b82f6,#06b6d4)">J</div>
+                <div>
+                  <strong>Jennifer Lee</strong>
+                  <span>Homeowner · Sydney</span>
+                </div>
+              </div>
+            </div>
+            <div class="testimonial-card animate-on-scroll">
+              <div class="testimonial-stars">★★★★★</div>
+              <p class="testimonial-text">"As a cleaning professional, this platform has tripled my client base. The booking system is smooth and payments are always on time. Highly recommend!"</p>
+              <div class="testimonial-author">
+                <div class="testimonial-avatar" style="background:linear-gradient(135deg,#10b981,#059669)">M</div>
+                <div>
+                  <strong>Michael Torres</strong>
+                  <span>Cleaning Professional · Melbourne</span>
+                </div>
+              </div>
+            </div>
+            <div class="testimonial-card animate-on-scroll">
+              <div class="testimonial-stars">★★★★★</div>
+              <p class="testimonial-text">"We use CleanerPro for our entire hotel chain. The admin dashboard gives us full control and the quality of cleaners on the platform is outstanding."</p>
+              <div class="testimonial-author">
+                <div class="testimonial-avatar" style="background:linear-gradient(135deg,#8b5cf6,#ec4899)">S</div>
+                <div>
+                  <strong>Sarah Chen</strong>
+                  <span>Operations Manager · Brisbane</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FOR WORKERS CTA -->
+      <section class="workers-cta-section">
+        <div class="landing-container">
+          <div class="workers-cta-grid">
+            <div class="workers-cta-content animate-on-scroll">
+              <div class="section-label" style="text-align:left">For Professionals</div>
+              <h2 class="section-title" style="text-align:left">Grow Your Cleaning <span class="hero-gradient">Business</span></h2>
+              <p>Join thousands of cleaning professionals earning more with CleanerPro. Set your own hours, choose your jobs, and get paid securely.</p>
+              <ul class="workers-cta-list">
+                <li><span class="wcl-check">✓</span> Set your own schedule & hourly rate</li>
+                <li><span class="wcl-check">✓</span> Receive bookings directly — no cold calling</li>
+                <li><span class="wcl-check">✓</span> Secure, on-time payments every time</li>
+                <li><span class="wcl-check">✓</span> Build your reputation with reviews & ratings</li>
+                <li><span class="wcl-check">✓</span> Free to join — no hidden fees</li>
+              </ul>
+              <button class="btn btn-primary btn-lg" onclick="app.navigate('#/register')" style="margin-top:1rem">Join as a Professional →</button>
+            </div>
+            <div class="workers-cta-visual animate-on-scroll">
+              <div class="wcv-card">
+                <div class="wcv-header">
+                  <div class="wcv-avatar">👷</div>
+                  <div>
+                    <strong>Your Dashboard</strong>
+                    <span class="text-sm text-muted">Worker View</span>
+                  </div>
+                  <div class="wcv-online">● Online</div>
+                </div>
+                <div class="wcv-stats">
+                  <div class="wcv-stat"><span class="wcv-stat-val">$3,200</span><span class="wcv-stat-lbl">This Month</span></div>
+                  <div class="wcv-stat"><span class="wcv-stat-val">28</span><span class="wcv-stat-lbl">Jobs Done</span></div>
+                  <div class="wcv-stat"><span class="wcv-stat-val">5.0★</span><span class="wcv-stat-lbl">Rating</span></div>
+                </div>
+                <div class="wcv-jobs">
+                  <div class="wcv-job"><span>🏠</span><div><strong>House Clean</strong><span>Today 2:00 PM · $85</span></div><span class="wcv-job-status accepted">Accepted</span></div>
+                  <div class="wcv-job"><span>🧽</span><div><strong>Deep Clean</strong><span>Tomorrow 10 AM · $150</span></div><span class="wcv-job-status pending">Pending</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PRICING -->
+      <section class="pricing-section" id="pricing-section">
+        <div class="landing-container">
+          <div class="section-label animate-on-scroll">Pricing</div>
+          <h2 class="section-title animate-on-scroll">Simple, <span class="hero-gradient">Transparent</span> Pricing</h2>
+          <p class="section-subtitle animate-on-scroll">No hidden fees. No subscriptions. Pay only for the services you book.</p>
+          <div class="pricing-grid">
+            <div class="pricing-card animate-on-scroll">
+              <div class="pricing-card-header">
+                <h3>Customer</h3>
+                <div class="pricing-price">Free</div>
+                <p>For homeowners & businesses</p>
+              </div>
+              <ul class="pricing-features">
+                <li>✓ Browse all services & workers</li>
+                <li>✓ GPS-powered worker search</li>
+                <li>✓ Instant online booking</li>
+                <li>✓ Real-time status tracking</li>
+                <li>✓ Secure payment processing</li>
+                <li>✓ Review & rate workers</li>
+                <li>✓ Push notifications</li>
+              </ul>
+              <button class="btn btn-primary btn-block btn-lg" onclick="app.navigate('#/register')">Sign Up Free</button>
+            </div>
+            <div class="pricing-card featured animate-on-scroll">
+              <div class="pricing-popular">Most Popular</div>
+              <div class="pricing-card-header">
+                <h3>Professional</h3>
+                <div class="pricing-price">Free</div>
+                <p>For cleaning professionals</p>
+              </div>
+              <ul class="pricing-features">
+                <li>✓ Everything in Customer, plus:</li>
+                <li>✓ Create your professional profile</li>
+                <li>✓ Receive booking requests</li>
+                <li>✓ Set your own rates & schedule</li>
+                <li>✓ Online/offline availability toggle</li>
+                <li>✓ Customer management tools</li>
+                <li>✓ Earning insights & history</li>
+              </ul>
+              <button class="btn btn-primary btn-block btn-lg" onclick="app.navigate('#/register')">Join as Pro</button>
+            </div>
+            <div class="pricing-card animate-on-scroll">
+              <div class="pricing-card-header">
+                <h3>Enterprise</h3>
+                <div class="pricing-price">Custom</div>
+                <p>For large businesses & chains</p>
+              </div>
+              <ul class="pricing-features">
+                <li>✓ Everything in Professional, plus:</li>
+                <li>✓ Admin dashboard & analytics</li>
+                <li>✓ Worker approval workflow</li>
+                <li>✓ Bulk booking management</li>
+                <li>✓ Revenue tracking & reports</li>
+                <li>✓ Priority support</li>
+                <li>✓ Custom integrations</li>
+              </ul>
+              <button class="btn btn-ghost btn-block btn-lg" onclick="app.navigate('#/register')">Contact Sales</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section class="faq-section" id="faq-section">
+        <div class="landing-container">
+          <div class="section-label animate-on-scroll">FAQ</div>
+          <h2 class="section-title animate-on-scroll">Frequently Asked <span class="hero-gradient">Questions</span></h2>
+          <div class="faq-grid">
+            <div class="faq-item animate-on-scroll" onclick="this.classList.toggle('open')">
+              <div class="faq-question">How does CleanerPro work? <span class="faq-toggle">+</span></div>
+              <div class="faq-answer">CleanerPro connects you with vetted cleaning professionals in your area. Simply create an account, browse available services, find a worker near you, book a convenient time, and pay securely — all from one platform.</div>
+            </div>
+            <div class="faq-item animate-on-scroll" onclick="this.classList.toggle('open')">
+              <div class="faq-question">Is it really free to use? <span class="faq-toggle">+</span></div>
+              <div class="faq-answer">Yes! Creating an account and booking services is completely free for customers. There are no hidden fees or subscriptions. You only pay for the cleaning services you book.</div>
+            </div>
+            <div class="faq-item animate-on-scroll" onclick="this.classList.toggle('open')">
+              <div class="faq-question">How are cleaning professionals vetted? <span class="faq-toggle">+</span></div>
+              <div class="faq-answer">Every professional undergoes an admin approval process before they can start accepting jobs. We review their qualifications, experience, and background. Our rating system further ensures ongoing quality.</div>
+            </div>
+            <div class="faq-item animate-on-scroll" onclick="this.classList.toggle('open')">
+              <div class="faq-question">What payment methods are supported? <span class="faq-toggle">+</span></div>
+              <div class="faq-answer">We support Credit Cards, Debit Cards, and PayPal. All transactions are encrypted and processed securely. You receive a transaction confirmation for every payment.</div>
+            </div>
+            <div class="faq-item animate-on-scroll" onclick="this.classList.toggle('open')">
+              <div class="faq-question">Can I cancel or reschedule a booking? <span class="faq-toggle">+</span></div>
+              <div class="faq-answer">Yes, you can cancel any booking that is still in Pending or Accepted status directly from your dashboard. The worker will be notified automatically.</div>
+            </div>
+            <div class="faq-item animate-on-scroll" onclick="this.classList.toggle('open')">
+              <div class="faq-question">How do I become a cleaning professional? <span class="faq-toggle">+</span></div>
+              <div class="faq-answer">Simply register as a Worker, fill in your profile with your specialization, hourly rate, and bio. Once an admin approves your account, you'll start receiving job requests from customers near you.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FINAL CTA -->
+      <section class="final-cta-section">
+        <div class="landing-container">
+          <div class="final-cta animate-on-scroll">
+            <h2>Ready to Experience <span class="hero-gradient">Effortless Cleaning?</span></h2>
+            <p>Join thousands of happy customers and professionals. Get started in under 30 seconds — it's completely free.</p>
+            <div class="final-cta-buttons">
+              <button class="btn btn-primary btn-lg" onclick="app.navigate('#/register')">🚀 Create Free Account</button>
+              <button class="btn btn-ghost btn-lg" onclick="app.navigate('#/login')">Sign In →</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FOOTER -->
+      <footer class="landing-footer">
+        <div class="landing-container">
+          <div class="footer-grid">
+            <div class="footer-brand">
+              <div class="nav-brand">
+                <span class="nav-brand-icon">🧹</span>
+                <span class="nav-brand-text">CleanerPro</span>
+              </div>
+              <p>The modern platform for professional cleaning services. Connecting customers with trusted cleaners since 2024.</p>
+            </div>
+            <div class="footer-col">
+              <h4>Platform</h4>
+              <a href="#features-section">Features</a>
+              <a href="#how-section">How It Works</a>
+              <a href="#services-section">Services</a>
+              <a href="#pricing-section">Pricing</a>
+            </div>
+            <div class="footer-col">
+              <h4>Company</h4>
+              <a href="#">About Us</a>
+              <a href="#">Careers</a>
+              <a href="#">Blog</a>
+              <a href="#">Contact</a>
+            </div>
+            <div class="footer-col">
+              <h4>Legal</h4>
+              <a href="#">Privacy Policy</a>
+              <a href="#">Terms of Service</a>
+              <a href="#">Cookie Policy</a>
+            </div>
+          </div>
+          <div class="footer-bottom">
+            <p>© 2024 CleanerPro. All rights reserved. Built with ❤️</p>
+          </div>
+        </div>
+      </footer>
+    </div>`;
+  }
+
+  initLandingAnimations() {
+    /* Sticky nav background on scroll */
+    const nav = document.getElementById('landing-nav');
+    const handleScroll = () => {
+      if (window.scrollY > 60) nav.classList.add('scrolled');
+      else nav.classList.remove('scrolled');
+    };
+    window.addEventListener('scroll', handleScroll);
+    handleScroll();
+
+    /* Intersection observer for animate-on-scroll */
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+    document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+    
+    /* Counter animation for stats */
+    document.querySelectorAll('.landing-stat-value').forEach(el => {
+      const target = el.textContent.trim();
+      /* Skip values with decimals like 4.9★ */
+      if (target.includes('.')) return;
+      const match = target.match(/(\D*?)([\d,]+)(\D*)/);
+      if (!match) return;
+      const prefix = match[1];
+      const num = parseInt(match[2].replace(/,/g, ''));
+      const suffix = match[3];
+      if (!num || num < 10) return;
+      let current = 0;
+      const step = Math.ceil(num / 60);
+      const timer = setInterval(() => {
+        current += step;
+        if (current >= num) { current = num; clearInterval(timer); }
+        el.textContent = prefix + current.toLocaleString() + suffix;
+      }, 25);
+    });
   }
 
   /* ═══════════════ AUTH PAGES ═══════════════ */
@@ -183,7 +740,7 @@ class App {
     localStorage.removeItem('token');
     this.user = null;
     this.notifications = [];
-    this.navigate('#/login');
+    this.navigate('#/');
     Components.toast('Signed out successfully.', 'info');
   }
 
