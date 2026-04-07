@@ -60,7 +60,7 @@ const Components = {
         <h3>${service.name}</h3>
         <p class="service-desc">${service.description || ''}</p>
         <div class="service-meta">
-          <span class="service-price">$${service.base_price}</span>
+          <span class="service-price">₹${service.base_price}</span>
           <span class="service-duration">${service.duration_hours}h</span>
         </div>
         ${showBook ? `<button class="btn btn-primary btn-block" onclick="app.openBookingModal(${service.id})">Book Now</button>` : ''}
@@ -70,17 +70,20 @@ const Components = {
 
   /* ── Worker Card ──────────────────────────────────────── */
   workerCard(worker, showBook = true) {
+    const avatarContent = worker.avatar && worker.avatar.startsWith('data:') 
+      ? `<img src="${worker.avatar}" alt="${worker.name}" class="worker-avatar-img">`
+      : (worker.avatar || '👤');
     return `
       <div class="worker-card" style="animation-delay:${worker._delay || 0}s">
         <div class="worker-avatar">
-          ${worker.avatar || '👤'}
+          ${avatarContent}
           ${worker.availability === 'online' ? '<div class="online-dot"></div>' : ''}
         </div>
         <h3>${worker.name}</h3>
         <div class="worker-spec">${worker.specialization || 'General'}</div>
         <div class="worker-rating">${this.stars(worker.rating || 0, worker.review_count || 0)}</div>
         <div class="worker-meta">
-          <span>💰 $${worker.hourly_rate || 0}/hr</span>
+          <span>💰 ₹${worker.hourly_rate || 0}/hr</span>
           ${worker.distance !== null && worker.distance !== undefined ? `<span>📍 ${worker.distance.toFixed(1)} km</span>` : ''}
         </div>
         ${showBook ? `<button class="btn btn-primary btn-block" onclick="app.openBookingModal(null, ${worker.id})">Book Worker</button>` : ''}
@@ -129,7 +132,7 @@ const Components = {
           <div class="booking-detail"><div class="label">Address</div><div class="value">${booking.address || 'N/A'}</div></div>
         </div>
         <div class="booking-card-footer">
-          <span class="booking-price">$${booking.total_price || 0}</span>
+          <span class="booking-price">₹${booking.total_price || 0}</span>
           <div class="booking-actions">${actions}</div>
         </div>
       </div>
@@ -199,6 +202,36 @@ const Components = {
   /* ── Loading ──────────────────────────────────────────── */
   loading() {
     return `<div class="loading-overlay"><div class="spinner"></div><span>Loading...</span></div>`;
+  },
+
+  /* ── Location Picker Component ────────────────────────── */
+  locationPicker(id, currentAddress = '', currentLat = '', currentLng = '') {
+    return `
+      <div class="location-picker" id="${id}">
+        <div class="location-input-wrap">
+          <div class="location-search-box">
+            <span class="location-search-icon">📍</span>
+            <input class="form-input location-autocomplete" 
+                   type="text" 
+                   id="${id}-address" 
+                   placeholder="Type your address (e.g. Andheri, Mumbai)" 
+                   value="${currentAddress || ''}"
+                   autocomplete="off"
+                   oninput="app.handleLocationAutocomplete('${id}', this.value)">
+            <div class="autocomplete-dropdown" id="${id}-suggestions"></div>
+          </div>
+          <button type="button" class="btn btn-ghost location-detect-btn" onclick="app.detectCurrentLocation('${id}')">
+            <span class="detect-icon">📡</span> Use Current Location
+          </button>
+        </div>
+        <div class="location-coords">
+          <input type="hidden" id="${id}-lat" value="${currentLat || ''}">
+          <input type="hidden" id="${id}-lng" value="${currentLng || ''}">
+          <span class="location-status" id="${id}-status">${currentAddress ? '✅ Location set' : ''}</span>
+        </div>
+        <div class="location-map-container" id="${id}-map" style="display:${currentLat ? 'block' : 'none'}"></div>
+      </div>
+    `;
   },
 
   /* ── Time Ago Helper ──────────────────────────────────── */

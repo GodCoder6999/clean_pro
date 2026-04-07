@@ -2,10 +2,10 @@ require('dotenv').config();
 const { createClient } = require('@libsql/client');
 const bcrypt = require('bcryptjs');
 
-// Connect to Turso Cloud Database
+// Connect to Turso Cloud Database or local SQLite fallback
 const db = createClient({
-  url: process.env.TURSO_DATABASE_URL,
-  authToken: process.env.TURSO_AUTH_TOKEN,
+  url: process.env.TURSO_DATABASE_URL || 'file:cleanerpro.db',
+  authToken: process.env.TURSO_AUTH_TOKEN || undefined,
 });
 
 /* ───────────────────────── Schema & Seed ───────────────────────── */
@@ -103,24 +103,24 @@ async function initializeDatabase() {
     
     const statements = [
       /* Admin */
-      { sql: 'INSERT INTO users (name,email,password,role,phone,address,avatar,status,latitude,longitude,availability,specialization,hourly_rate,bio) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', args: ['Admin User','admin@cleanerpro.com',hash,'admin','555-0100','123 Admin St','👤','active',null,null,'offline',null,null,'Platform administrator'] },
-      /* Workers */
-      { sql: 'INSERT INTO users (name,email,password,role,phone,address,avatar,status,latitude,longitude,availability,specialization,hourly_rate,bio) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', args: ['Marcus Johnson','marcus@cleanerpro.com',hash,'worker','555-0201','456 Oak Ave','👨‍🔧','active',40.7128,-74.0060,'online','House Cleaning',35,'Professional house cleaner with 8 years of experience. Meticulous attention to detail.'] },
-      { sql: 'INSERT INTO users (name,email,password,role,phone,address,avatar,status,latitude,longitude,availability,specialization,hourly_rate,bio) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', args: ['Sarah Williams','sarah@cleanerpro.com',hash,'worker','555-0202','789 Pine Rd','👩‍🔧','active',40.7200,-74.0000,'online','Deep Cleaning',45,'Certified deep cleaning specialist. Eco-friendly products only.'] },
-      { sql: 'INSERT INTO users (name,email,password,role,phone,address,avatar,status,latitude,longitude,availability,specialization,hourly_rate,bio) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', args: ['David Chen','david@cleanerpro.com',hash,'worker','555-0203','321 Elm St','👨‍🔧','active',40.7300,-73.9950,'offline','Carpet & Windows',40,'Expert in carpet and window cleaning. Commercial grade equipment.'] },
-      { sql: 'INSERT INTO users (name,email,password,role,phone,address,avatar,status,latitude,longitude,availability,specialization,hourly_rate,bio) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', args: ['Emily Brown','emily@cleanerpro.com',hash,'worker','555-0204','654 Maple Dr','👩‍🔧','pending',40.7180,-74.0020,'offline','General Cleaning',30,'Eager to start! 3 years of cleaning experience.'] },
-      /* Customers */
-      { sql: 'INSERT INTO users (name,email,password,role,phone,address,avatar,status,latitude,longitude,availability,specialization,hourly_rate,bio) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', args: ['Alice Martinez','alice@email.com',hash,'customer','555-0301','100 Broadway','👩','active',40.7150,-74.0080,null,null,null,null] },
-      { sql: 'INSERT INTO users (name,email,password,role,phone,address,avatar,status,latitude,longitude,availability,specialization,hourly_rate,bio) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', args: ['Robert Taylor','robert@email.com',hash,'customer','555-0302','200 5th Ave','👨','active',40.7180,-74.0020,null,null,null,null] },
-      { sql: 'INSERT INTO users (name,email,password,role,phone,address,avatar,status,latitude,longitude,availability,specialization,hourly_rate,bio) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', args: ['Jessica Wilson','jessica@email.com',hash,'customer','555-0303','300 Park Ave','👩','active',40.7250,-73.9980,null,null,null,null] },
-      /* Services */
-      { sql: 'INSERT INTO services (name,description,base_price,duration_hours,icon,category) VALUES (?,?,?,?,?,?)', args: ['Standard House Cleaning','Complete cleaning of all rooms including dusting, vacuuming, mopping, and bathroom sanitization.',80,2,'🏠','Residential'] },
-      { sql: 'INSERT INTO services (name,description,base_price,duration_hours,icon,category) VALUES (?,?,?,?,?,?)', args: ['Deep Cleaning','Intensive top-to-bottom cleaning including behind appliances, inside cabinets, and detailed scrubbing.',150,4,'✨','Residential'] },
-      { sql: 'INSERT INTO services (name,description,base_price,duration_hours,icon,category) VALUES (?,?,?,?,?,?)', args: ['Carpet Cleaning','Professional steam cleaning and stain removal for all carpet types.',100,2,'🧹','Specialty'] },
-      { sql: 'INSERT INTO services (name,description,base_price,duration_hours,icon,category) VALUES (?,?,?,?,?,?)', args: ['Window Washing','Interior and exterior window cleaning with streak-free finish.',60,1.5,'🪟','Specialty'] },
+      { sql: 'INSERT INTO users (name,email,password,role,phone,address,avatar,status,latitude,longitude,availability,specialization,hourly_rate,bio) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', args: ['Admin User','admin@cleanerpro.com',hash,'admin','9800010000','Connaught Place, New Delhi','👤','active',28.6315,77.2167,'offline',null,null,'Platform administrator'] },
+      /* Workers — Indian cities */
+      { sql: 'INSERT INTO users (name,email,password,role,phone,address,avatar,status,latitude,longitude,availability,specialization,hourly_rate,bio) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', args: ['Rajesh Kumar','rajesh@cleanerpro.com',hash,'worker','9876543210','Andheri West, Mumbai, Maharashtra','👨‍🔧','active',19.1364,72.8296,'online','House Cleaning',500,'Professional house cleaner with 8 years of experience. Meticulous attention to detail. Serving Mumbai and surrounding areas.'] },
+      { sql: 'INSERT INTO users (name,email,password,role,phone,address,avatar,status,latitude,longitude,availability,specialization,hourly_rate,bio) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', args: ['Priya Sharma','priya@cleanerpro.com',hash,'worker','9876543211','Koramangala, Bangalore, Karnataka','👩‍🔧','active',12.9352,77.6245,'online','Deep Cleaning',600,'Certified deep cleaning specialist. Eco-friendly products only. Based in Bangalore.'] },
+      { sql: 'INSERT INTO users (name,email,password,role,phone,address,avatar,status,latitude,longitude,availability,specialization,hourly_rate,bio) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', args: ['Amit Patel','amit@cleanerpro.com',hash,'worker','9876543212','Vastrapur, Ahmedabad, Gujarat','👨‍🔧','active',23.0225,72.5714,'offline','Carpet & Windows',450,'Expert in carpet and window cleaning. Commercial grade equipment. Serving Ahmedabad.'] },
+      { sql: 'INSERT INTO users (name,email,password,role,phone,address,avatar,status,latitude,longitude,availability,specialization,hourly_rate,bio) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', args: ['Sneha Reddy','sneha@cleanerpro.com',hash,'worker','9876543213','Banjara Hills, Hyderabad, Telangana','👩‍🔧','pending',17.4156,78.4347,'offline','General Cleaning',400,'Eager to start! 3 years of cleaning experience. Based in Hyderabad.'] },
+      /* Customers — Indian cities */
+      { sql: 'INSERT INTO users (name,email,password,role,phone,address,avatar,status,latitude,longitude,availability,specialization,hourly_rate,bio) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', args: ['Anita Desai','anita@email.com',hash,'customer','9988776655','Bandra West, Mumbai, Maharashtra','👩','active',19.0596,72.8295,null,null,null,null] },
+      { sql: 'INSERT INTO users (name,email,password,role,phone,address,avatar,status,latitude,longitude,availability,specialization,hourly_rate,bio) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', args: ['Vikram Singh','vikram@email.com',hash,'customer','9988776656','Saket, New Delhi','👨','active',28.5244,77.2066,null,null,null,null] },
+      { sql: 'INSERT INTO users (name,email,password,role,phone,address,avatar,status,latitude,longitude,availability,specialization,hourly_rate,bio) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', args: ['Meera Nair','meera@email.com',hash,'customer','9988776657','Indiranagar, Bangalore, Karnataka','👩','active',12.9784,77.6408,null,null,null,null] },
+      /* Services — prices in INR */
+      { sql: 'INSERT INTO services (name,description,base_price,duration_hours,icon,category) VALUES (?,?,?,?,?,?)', args: ['Standard House Cleaning','Complete cleaning of all rooms including dusting, vacuuming, mopping, and bathroom sanitization.',1500,2,'🏠','Residential'] },
+      { sql: 'INSERT INTO services (name,description,base_price,duration_hours,icon,category) VALUES (?,?,?,?,?,?)', args: ['Deep Cleaning','Intensive top-to-bottom cleaning including behind appliances, inside cabinets, and detailed scrubbing.',3500,4,'✨','Residential'] },
+      { sql: 'INSERT INTO services (name,description,base_price,duration_hours,icon,category) VALUES (?,?,?,?,?,?)', args: ['Carpet Cleaning','Professional steam cleaning and stain removal for all carpet types.',2000,2,'🧹','Specialty'] },
+      { sql: 'INSERT INTO services (name,description,base_price,duration_hours,icon,category) VALUES (?,?,?,?,?,?)', args: ['Window Washing','Interior and exterior window cleaning with streak-free finish.',1000,1.5,'🪟','Specialty'] },
       /* Bookings */
-      { sql: 'INSERT INTO bookings (customer_id,worker_id,service_id,status,scheduled_date,scheduled_time,address,notes,total_price) VALUES (?,?,?,?,?,?,?,?,?)', args: [6,2,1,'COMPLETED','2026-03-20','09:00','100 Broadway, New York','Please use eco-friendly products',80] },
-      { sql: 'INSERT INTO bookings (customer_id,worker_id,service_id,status,scheduled_date,scheduled_time,address,notes,total_price) VALUES (?,?,?,?,?,?,?,?,?)', args: [7,3,2,'IN_PROGRESS','2026-04-06','14:00','200 5th Ave, New York','Focus on kitchen and bathrooms',150] }
+      { sql: 'INSERT INTO bookings (customer_id,worker_id,service_id,status,scheduled_date,scheduled_time,address,notes,total_price) VALUES (?,?,?,?,?,?,?,?,?)', args: [6,2,1,'COMPLETED','2026-03-20','09:00','Bandra West, Mumbai, Maharashtra','Please use eco-friendly products',1500] },
+      { sql: 'INSERT INTO bookings (customer_id,worker_id,service_id,status,scheduled_date,scheduled_time,address,notes,total_price) VALUES (?,?,?,?,?,?,?,?,?)', args: [7,3,2,'IN_PROGRESS','2026-04-06','14:00','Saket, New Delhi','Focus on kitchen and bathrooms',3500] }
     ];
 
     await db.batch(statements);

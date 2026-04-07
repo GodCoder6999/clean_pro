@@ -9,6 +9,9 @@ class App {
     this.notifications = [];
     this.notifOpen = false;
     this.modalEl = null;
+    this._acTimeout = null;
+    this._maps = {};
+    this._searchAllIndia = false;
     window.addEventListener('hashchange', () => this.route());
     this.init();
   }
@@ -57,6 +60,7 @@ class App {
       case '/services': await this.renderServices(); break;
       case '/workers': await this.renderFindWorkers(); break;
       case '/bookings': await this.renderMyBookings(); break;
+      case '/profile': await this.renderProfile(); break;
       case '/worker/requests': await this.renderJobRequests(); break;
       case '/worker/active': await this.renderActiveJobs(); break;
       case '/worker/history': await this.renderJobHistory(); break;
@@ -280,37 +284,37 @@ class App {
               <div class="spc-icon">🏠</div>
               <h3>House Cleaning</h3>
               <p>Complete home cleaning including dusting, vacuuming, mopping, and surface sanitization.</p>
-              <div class="spc-price">From <strong>$50</strong></div>
+              <div class="spc-price">From <strong>₹1,500</strong></div>
             </div>
             <div class="service-preview-card animate-on-scroll">
               <div class="spc-icon">🧽</div>
               <h3>Deep Cleaning</h3>
               <p>Thorough top-to-bottom cleaning reaching every corner, behind appliances, and hidden areas.</p>
-              <div class="spc-price">From <strong>$120</strong></div>
+              <div class="spc-price">From <strong>₹3,500</strong></div>
             </div>
             <div class="service-preview-card animate-on-scroll">
               <div class="spc-icon">🪟</div>
               <h3>Window Cleaning</h3>
               <p>Crystal-clear windows inside and out. Professional equipment for streak-free results.</p>
-              <div class="spc-price">From <strong>$40</strong></div>
+              <div class="spc-price">From <strong>₹1,000</strong></div>
             </div>
             <div class="service-preview-card animate-on-scroll">
               <div class="spc-icon">🏢</div>
               <h3>Office Cleaning</h3>
               <p>Keep your workspace pristine. Regular or one-time cleaning for offices of all sizes.</p>
-              <div class="spc-price">From <strong>$80</strong></div>
+              <div class="spc-price">From <strong>₹2,000</strong></div>
             </div>
             <div class="service-preview-card animate-on-scroll">
               <div class="spc-icon">🧹</div>
               <h3>Move-In/Out Clean</h3>
               <p>Moving? Leave your old place spotless or start fresh in your new one. Bond-back guarantee.</p>
-              <div class="spc-price">From <strong>$150</strong></div>
+              <div class="spc-price">From <strong>₹4,000</strong></div>
             </div>
             <div class="service-preview-card animate-on-scroll">
               <div class="spc-icon">🛋️</div>
               <h3>Carpet & Upholstery</h3>
               <p>Professional steam cleaning and stain removal for carpets, sofas, and upholstery.</p>
-              <div class="spc-price">From <strong>$60</strong></div>
+              <div class="spc-price">From <strong>₹1,200</strong></div>
             </div>
           </div>
           <div style="text-align:center;margin-top:2.5rem" class="animate-on-scroll">
@@ -357,7 +361,7 @@ class App {
                 <div class="testimonial-avatar" style="background:linear-gradient(135deg,#3b82f6,#06b6d4)">J</div>
                 <div>
                   <strong>Jennifer Lee</strong>
-                  <span>Homeowner · Sydney</span>
+                  <span>Homeowner · Mumbai</span>
                 </div>
               </div>
             </div>
@@ -368,7 +372,7 @@ class App {
                 <div class="testimonial-avatar" style="background:linear-gradient(135deg,#10b981,#059669)">M</div>
                 <div>
                   <strong>Michael Torres</strong>
-                  <span>Cleaning Professional · Melbourne</span>
+                  <span>Cleaning Professional · Bangalore</span>
                 </div>
               </div>
             </div>
@@ -379,7 +383,7 @@ class App {
                 <div class="testimonial-avatar" style="background:linear-gradient(135deg,#8b5cf6,#ec4899)">S</div>
                 <div>
                   <strong>Sarah Chen</strong>
-                  <span>Operations Manager · Brisbane</span>
+                  <span>Operations Manager · Delhi</span>
                 </div>
               </div>
             </div>
@@ -415,13 +419,13 @@ class App {
                   <div class="wcv-online">● Online</div>
                 </div>
                 <div class="wcv-stats">
-                  <div class="wcv-stat"><span class="wcv-stat-val">$3,200</span><span class="wcv-stat-lbl">This Month</span></div>
+                  <div class="wcv-stat"><span class="wcv-stat-val">₹32,000</span><span class="wcv-stat-lbl">This Month</span></div>
                   <div class="wcv-stat"><span class="wcv-stat-val">28</span><span class="wcv-stat-lbl">Jobs Done</span></div>
                   <div class="wcv-stat"><span class="wcv-stat-val">5.0★</span><span class="wcv-stat-lbl">Rating</span></div>
                 </div>
                 <div class="wcv-jobs">
-                  <div class="wcv-job"><span>🏠</span><div><strong>House Clean</strong><span>Today 2:00 PM · $85</span></div><span class="wcv-job-status accepted">Accepted</span></div>
-                  <div class="wcv-job"><span>🧽</span><div><strong>Deep Clean</strong><span>Tomorrow 10 AM · $150</span></div><span class="wcv-job-status pending">Pending</span></div>
+                  <div class="wcv-job"><span>🏠</span><div><strong>House Clean</strong><span>Today 2:00 PM · ₹1,500</span></div><span class="wcv-job-status accepted">Accepted</span></div>
+                  <div class="wcv-job"><span>🧽</span><div><strong>Deep Clean</strong><span>Tomorrow 10 AM · ₹3,500</span></div><span class="wcv-job-status pending">Pending</span></div>
                 </div>
               </div>
             </div>
@@ -637,7 +641,7 @@ class App {
           ${!isLogin ? `
           <div class="form-group">
             <label class="form-label">Full Name</label>
-            <input class="form-input" type="text" name="name" placeholder="John Doe" required>
+            <input class="form-input" type="text" name="name" placeholder="Rahul Sharma" required>
           </div>` : ''}
           <div class="form-group">
             <label class="form-label">Email</label>
@@ -658,19 +662,37 @@ class App {
           <div id="worker-fields" style="display:none">
             <div class="form-group">
               <label class="form-label">Phone</label>
-              <input class="form-input" type="tel" name="phone" placeholder="555-0100">
+              <input class="form-input" type="tel" name="phone" placeholder="+91 98765 43210">
             </div>
             <div class="form-group">
               <label class="form-label">Specialization</label>
               <input class="form-input" type="text" name="specialization" placeholder="e.g. House Cleaning">
             </div>
             <div class="form-group">
-              <label class="form-label">Hourly Rate ($)</label>
-              <input class="form-input" type="number" name="hourly_rate" placeholder="35" min="10">
+              <label class="form-label">Hourly Rate (₹)</label>
+              <input class="form-input" type="number" name="hourly_rate" placeholder="500" min="50">
             </div>
             <div class="form-group">
               <label class="form-label">Short Bio</label>
               <textarea class="form-textarea" name="bio" placeholder="Tell us about your experience..."></textarea>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">📍 Your Location</label>
+            <div class="location-search-box">
+              <span class="location-search-icon">📍</span>
+              <input class="form-input location-autocomplete" type="text" id="reg-address" name="address"
+                placeholder="Type your address (e.g. Koramangala, Bangalore)" autocomplete="off"
+                oninput="app.handleLocationAutocomplete('reg', this.value)">
+              <div class="autocomplete-dropdown" id="reg-suggestions"></div>
+            </div>
+            <input type="hidden" id="reg-lat" name="latitude">
+            <input type="hidden" id="reg-lng" name="longitude">
+            <div style="margin-top:.5rem">
+              <button type="button" class="btn btn-ghost btn-sm" onclick="app.detectCurrentLocation('reg')">
+                📡 Use Current Location
+              </button>
+              <span class="location-status" id="reg-status"></span>
             </div>
           </div>
           ` : ''}
@@ -755,8 +777,8 @@ class App {
         <div class="sidebar-header">
           <div class="sidebar-brand"><span class="brand-icon">🧹</span><h2>CleanerPro</h2></div>
         </div>
-        <div class="sidebar-user">
-          <div class="sidebar-avatar">${this.user.avatar || '👤'}</div>
+        <div class="sidebar-user sidebar-user-clickable" onclick="app.navigate('#/profile')" title="Edit Profile">
+          <div class="sidebar-avatar">${this.user.avatar && this.user.avatar.startsWith('data:') ? `<img src="${this.user.avatar}" alt="${this.user.name}">` : (this.user.avatar || '👤')}</div>
           <div class="sidebar-user-info">
             <h4>${this.user.name}</h4>
             <span class="role-badge ${this.user.role}">${this.user.role}</span>
@@ -803,7 +825,9 @@ class App {
       ${item('#/dashboard','📊','Dashboard')}
       ${item('#/services','🧹','Services')}
       ${item('#/workers','👷','Find Workers')}
-      ${item('#/bookings','📋','My Bookings')}`;
+      ${item('#/bookings','📋','My Bookings')}
+      <div class="nav-section-title">Account</div>
+      ${item('#/profile','👤','My Profile')}`;
 
     if (r === 'worker') {
       const pending = this.user.status === 'pending';
@@ -812,7 +836,9 @@ class App {
       ${item('#/dashboard','📊','Dashboard')}
       ${!pending ? item('#/worker/requests','📥','Job Requests') : ''}
       ${!pending ? item('#/worker/active','🔧','Active Jobs') : ''}
-      ${!pending ? item('#/worker/history','📜','Job History') : ''}`;
+      ${!pending ? item('#/worker/history','📜','Job History') : ''}
+      <div class="nav-section-title">Account</div>
+      ${item('#/profile','👤','My Profile')}`;
     }
 
     return `
@@ -918,7 +944,7 @@ class App {
           ${Components.statCard('📋', total, 'Total Bookings', 'blue')}
           ${Components.statCard('⚡', active, 'Active Bookings', 'yellow')}
           ${Components.statCard('✅', completed, 'Completed', 'green')}
-          ${Components.statCard('💰', '$' + spent, 'Total Spent', 'violet')}
+          ${Components.statCard('💰', '₹' + spent, 'Total Spent', 'violet')}
         </div>
         <div class="section-header">
           <h2>Recent Bookings</h2>
@@ -943,47 +969,115 @@ class App {
 
   async renderFindWorkers() {
     this.renderLayout('Find Workers', Components.loading());
-    const lat = this.user.latitude || 40.7150;
-    const lng = this.user.longitude || -74.0080;
+    const lat = this.user.latitude || 20.5937;
+    const lng = this.user.longitude || 78.9629;
+    this._searchAllIndia = false;
     try {
       const workers = await API.getNearbyWorkers(lat, lng, 50);
       workers.forEach((w, i) => w._delay = i * 0.08);
       document.getElementById('page-content').innerHTML = `
-        <div class="filter-bar">
-          <div class="form-group" style="margin-bottom:0">
-            <label class="form-label">Latitude</label>
-            <input class="form-input" type="number" step="0.0001" id="search-lat" value="${lat}">
+        <div class="workers-search-bar">
+          <div class="workers-search-row">
+            <div class="search-field">
+              <label class="form-label">📍 Your Location</label>
+              <div class="location-search-box">
+                <span class="location-search-icon">🔍</span>
+                <input class="form-input location-autocomplete" type="text" id="worker-search-address"
+                  placeholder="Search by city, area (e.g. Andheri, Mumbai)" autocomplete="off"
+                  value="${this.user.address || ''}"
+                  oninput="app.handleLocationAutocomplete('worker-search', this.value)">
+                <div class="autocomplete-dropdown" id="worker-search-suggestions"></div>
+              </div>
+              <input type="hidden" id="worker-search-lat" value="${lat}">
+              <input type="hidden" id="worker-search-lng" value="${lng}">
+            </div>
+            <div class="workers-radius-field">
+              <label class="form-label">Radius (km)</label>
+              <input class="form-input" type="number" id="search-radius" value="50" min="1" max="2000">
+            </div>
+            <div class="workers-search-actions">
+              <button class="btn btn-ghost" onclick="app.detectCurrentLocation('worker-search')" title="Use current GPS location">📡 My Location</button>
+              <button class="btn btn-primary" onclick="app.searchWorkers()">🔍 Search</button>
+            </div>
           </div>
-          <div class="form-group" style="margin-bottom:0">
-            <label class="form-label">Longitude</label>
-            <input class="form-input" type="number" step="0.0001" id="search-lng" value="${lng}">
-          </div>
-          <div class="form-group" style="margin-bottom:0">
-            <label class="form-label">Radius (km)</label>
-            <input class="form-input" type="number" id="search-radius" value="50" min="1" max="500">
-          </div>
-          <div class="form-group" style="margin-bottom:0;align-self:flex-end">
-            <button class="btn btn-primary" onclick="app.searchWorkers()">🔍 Search</button>
+          <div class="search-toggle-wrap">
+            <span class="search-toggle-flag">🇮🇳</span>
+            <span class="search-toggle-label">Search All India</span>
+            <label class="toggle">
+              <input type="checkbox" id="search-all-india" onchange="app.toggleSearchAllIndia(this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+            <span class="text-muted text-sm">Find workers anywhere across India</span>
           </div>
         </div>
+        <div id="workers-map-wrap" class="workers-map-container"><div id="workers-map" style="height:100%"></div></div>
         <div id="workers-grid" class="cards-grid">
           ${workers.length ? workers.map(w => Components.workerCard(w)).join('') : Components.emptyState('👷', 'No workers found', 'Try expanding your search radius.')}
         </div>`;
+      this._initWorkersMap(lat, lng, workers);
     } catch (e) { document.getElementById('page-content').innerHTML = Components.emptyState('❌', 'Error', e.message); }
   }
 
+  _initWorkersMap(lat, lng, workers) {
+    setTimeout(() => {
+      const mapEl = document.getElementById('workers-map');
+      if (!mapEl || typeof L === 'undefined') return;
+      if (this._maps.workers) { this._maps.workers.remove(); }
+      const map = L.map('workers-map').setView([lat, lng], 10);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors', maxZoom: 18
+      }).addTo(map);
+      L.marker([lat, lng], { title: 'Your Location' })
+        .addTo(map).bindPopup('<b>📍 Your Location</b>');
+      workers.forEach(w => {
+        if (w.latitude && w.longitude) {
+          L.marker([w.latitude, w.longitude])
+            .addTo(map)
+            .bindPopup(`<div class="worker-map-popup">
+              <h4>${w.name}</h4>
+              <div class="wmp-spec">${w.specialization || 'General'}</div>
+              <div class="wmp-rating">${'★'.repeat(Math.round(w.rating || 0))}${'☆'.repeat(5 - Math.round(w.rating || 0))}</div>
+              <div class="wmp-rate">₹${w.hourly_rate || 0}/hr</div>
+            </div>`);
+        }
+      });
+      if (workers.length > 0) {
+        const allPts = [[lat, lng], ...workers.filter(w => w.latitude).map(w => [w.latitude, w.longitude])];
+        map.fitBounds(allPts, { padding: [30, 30], maxZoom: 12 });
+      }
+      this._maps.workers = map;
+    }, 100);
+  }
+
+  toggleSearchAllIndia(checked) {
+    this._searchAllIndia = checked;
+    const radiusInput = document.getElementById('search-radius');
+    if (radiusInput) {
+      radiusInput.disabled = checked;
+      if (checked) radiusInput.value = '0';
+      else radiusInput.value = '50';
+    }
+  }
+
   async searchWorkers() {
-    const lat = document.getElementById('search-lat').value;
-    const lng = document.getElementById('search-lng').value;
-    const radius = document.getElementById('search-radius').value;
+    const lat = document.getElementById('worker-search-lat').value || 20.5937;
+    const lng = document.getElementById('worker-search-lng').value || 78.9629;
+    const radius = this._searchAllIndia ? 0 : (document.getElementById('search-radius').value || 50);
     const grid = document.getElementById('workers-grid');
     grid.innerHTML = Components.loading();
     try {
-      const workers = await API.getNearbyWorkers(lat, lng, radius);
+      let workers;
+      if (this._searchAllIndia) {
+        workers = await API.searchAllWorkers();
+      } else {
+        workers = await API.getNearbyWorkers(lat, lng, radius);
+      }
       workers.forEach((w, i) => w._delay = i * 0.08);
-      grid.innerHTML = workers.length ? workers.map(w => Components.workerCard(w)).join('') : Components.emptyState('👷', 'No workers found', 'Try expanding your search radius.');
+      grid.innerHTML = workers.length ? workers.map(w => Components.workerCard(w)).join('') : Components.emptyState('👷', 'No workers found', 'Try expanding your search radius or enable "Search All India".');
+      this._initWorkersMap(+lat, +lng, workers);
     } catch (e) { grid.innerHTML = Components.emptyState('❌', 'Error', e.message); }
   }
+
 
   async renderMyBookings() {
     this.renderLayout('My Bookings', Components.loading());
@@ -1048,7 +1142,7 @@ class App {
           ${Components.statCard('📥', pending, 'Pending Requests', 'yellow')}
           ${Components.statCard('🔧', active, 'Active Jobs', 'blue')}
           ${Components.statCard('✅', completed, 'Completed', 'green')}
-          ${Components.statCard('💰', '$' + earned, 'Total Earned', 'violet')}
+          ${Components.statCard('💰', '₹' + earned, 'Total Earned', 'violet')}
         </div>
         <div class="section-header"><h2>Recent Activity</h2></div>
         <div class="cards-grid" style="grid-template-columns:1fr">
@@ -1120,7 +1214,7 @@ class App {
           ${Components.statCard('⏳', stats.pendingWorkers, 'Pending Approvals', 'yellow')}
           ${Components.statCard('🛒', stats.customers, 'Customers', 'cyan')}
           ${Components.statCard('📋', stats.totalBookings, 'Total Bookings', 'violet')}
-          ${Components.statCard('💰', '$' + stats.revenue.toFixed(0), 'Revenue', 'green')}
+          ${Components.statCard('💰', '₹' + stats.revenue.toFixed(0), 'Revenue', 'green')}
         </div>
         <div class="section-header"><h2>Bookings by Status</h2></div>
         <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:2rem">
@@ -1230,7 +1324,7 @@ class App {
               <td>${b.customer_name}</td>
               <td>${b.worker_name || 'Unassigned'}</td>
               <td>${b.scheduled_date || 'TBD'}</td>
-              <td>$${b.total_price || 0}</td>
+              <td>₹${b.total_price || 0}</td>
               <td>${Components.statusBadge(b.status)}</td>
             </tr>`).join('')}
           </tbody>
@@ -1279,7 +1373,7 @@ class App {
   async openBookingModal(serviceId = null, workerId = null) {
     try {
       const services = await API.getServices();
-      const workers = await API.getNearbyWorkers(this.user.latitude || 40.715, this.user.longitude || -74.008, 100);
+      const workers = await API.getNearbyWorkers(this.user.latitude || 20.5937, this.user.longitude || 78.9629, 100);
       const onlineWorkers = workers.filter(w => w.availability === 'online');
 
       const body = `
@@ -1288,14 +1382,14 @@ class App {
             <label class="form-label">Service</label>
             <select class="form-select" name="service_id" required onchange="app.updateBookingPrice()">
               <option value="">Select a service</option>
-              ${services.map(s => `<option value="${s.id}" data-price="${s.base_price}" ${s.id == serviceId ? 'selected' : ''}>${s.icon} ${s.name} — $${s.base_price}</option>`).join('')}
+              ${services.map(s => `<option value="${s.id}" data-price="${s.base_price}" ${s.id == serviceId ? 'selected' : ''}>${s.icon} ${s.name} — ₹${s.base_price}</option>`).join('')}
             </select>
           </div>
           <div class="form-group">
             <label class="form-label">Worker</label>
             <select class="form-select" name="worker_id" required>
               <option value="">Select a worker</option>
-              ${onlineWorkers.map(w => `<option value="${w.id}" ${w.id == workerId ? 'selected' : ''}>${w.name} — ${w.specialization} ($${w.hourly_rate}/hr)</option>`).join('')}
+              ${onlineWorkers.map(w => `<option value="${w.id}" ${w.id == workerId ? 'selected' : ''}>${w.name} — ${w.specialization} (₹${w.hourly_rate}/hr)</option>`).join('')}
             </select>
           </div>
           <div class="form-row">
@@ -1317,8 +1411,8 @@ class App {
             <textarea class="form-textarea" name="notes" placeholder="Any special instructions..."></textarea>
           </div>
           <div class="payment-summary">
-            <div class="payment-summary-row"><span>Service Price</span><span id="booking-price">$0</span></div>
-            <div class="payment-summary-row total"><span>Total</span><span id="booking-total">$0</span></div>
+            <div class="payment-summary-row"><span>Service Price</span><span id="booking-price">₹0</span></div>
+            <div class="payment-summary-row total"><span>Total</span><span id="booking-total">₹0</span></div>
           </div>
         </form>`;
 
@@ -1337,8 +1431,8 @@ class App {
     const price = opt?.dataset?.price || 0;
     const el1 = document.getElementById('booking-price');
     const el2 = document.getElementById('booking-total');
-    if (el1) el1.textContent = '$' + price;
-    if (el2) el2.textContent = '$' + price;
+    if (el1) el1.textContent = '₹' + price;
+    if (el2) el2.textContent = '₹' + price;
   }
 
   async submitBooking(e) {
@@ -1441,6 +1535,251 @@ class App {
   closeModal() {
     const overlay = document.querySelector('.modal-overlay');
     if (overlay) overlay.remove();
+  }
+
+  /* ═══════════════ PROFILE PAGE ═══════════════ */
+  async renderProfile() {
+    this.renderLayout('My Profile', Components.loading());
+    try {
+      const user = await API.getMe();
+      this.user = user;
+      const isWorker = user.role === 'worker';
+      const avatarHtml = user.avatar && user.avatar.startsWith('data:')
+        ? `<img src="${user.avatar}" alt="${user.name}">`
+        : (user.avatar || '👤');
+
+      document.getElementById('page-content').innerHTML = `
+        <div class="profile-page">
+          <div class="profile-header-card">
+            <div class="profile-avatar-wrap">
+              <div class="profile-avatar" id="profile-avatar-display">${avatarHtml}</div>
+              <div class="profile-avatar-overlay" onclick="document.getElementById('avatar-input').click()">
+                <span>📷<br>Change</span>
+              </div>
+              <input type="file" id="avatar-input" class="hidden-file-input" accept="image/*" onchange="app.handleAvatarUpload(event)">
+            </div>
+            <div class="profile-name">${user.name}</div>
+            <span class="role-badge ${user.role} profile-role">${user.role}</span>
+            <div class="profile-email">${user.email}</div>
+          </div>
+
+          <div class="profile-section">
+            <div class="profile-section-title"><div class="ps-icon">👤</div> Personal Information</div>
+            <form id="profile-form" onsubmit="app.saveProfile(event)">
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Full Name</label>
+                  <input class="form-input" name="name" value="${user.name || ''}" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Phone</label>
+                  <input class="form-input" name="phone" value="${user.phone || ''}" placeholder="+91 98765 43210">
+                </div>
+              </div>
+              ${isWorker ? `
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Specialization</label>
+                  <input class="form-input" name="specialization" value="${user.specialization || ''}" placeholder="e.g. House Cleaning">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Hourly Rate (₹)</label>
+                  <input class="form-input" type="number" name="hourly_rate" value="${user.hourly_rate || ''}" placeholder="500" min="50">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Bio</label>
+                <textarea class="form-textarea" name="bio" rows="3" placeholder="Tell customers about your experience...">${user.bio || ''}</textarea>
+              </div>` : ''}
+              <button type="submit" class="btn btn-primary btn-lg" id="save-profile-btn">💾 Save Changes</button>
+            </form>
+          </div>
+
+          <div class="profile-section">
+            <div class="profile-section-title"><div class="ps-icon">📍</div> Location</div>
+            ${Components.locationPicker('profile-loc', user.address || '', user.latitude || '', user.longitude || '')}
+            <button class="btn btn-primary" style="margin-top:1rem" onclick="app.saveProfileLocation()">📍 Update Location</button>
+          </div>
+
+          <div class="profile-section">
+            <div class="profile-section-title"><div class="ps-icon">🔒</div> Change Password</div>
+            <form id="password-form" onsubmit="app.changePassword(event)">
+              <div class="form-group">
+                <label class="form-label">Current Password</label>
+                <input class="form-input" type="password" name="current_password" required minlength="6">
+              </div>
+              <div class="form-group">
+                <label class="form-label">New Password</label>
+                <input class="form-input" type="password" name="new_password" required minlength="6">
+              </div>
+              <button type="submit" class="btn btn-ghost">🔒 Change Password</button>
+            </form>
+          </div>
+        </div>`;
+      this._initProfileMap(user);
+    } catch (e) { document.getElementById('page-content').innerHTML = Components.emptyState('❌', 'Error', e.message); }
+  }
+
+  _initProfileMap(user) {
+    if (!user.latitude || !user.longitude) return;
+    setTimeout(() => {
+      const container = document.getElementById('profile-loc-map');
+      if (!container || typeof L === 'undefined') return;
+      container.style.display = 'block';
+      if (this._maps.profile) this._maps.profile.remove();
+      const map = L.map(container).setView([user.latitude, user.longitude], 14);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap', maxZoom: 18
+      }).addTo(map);
+      L.marker([user.latitude, user.longitude]).addTo(map).bindPopup('<b>Your Location</b>').openPopup();
+      this._maps.profile = map;
+    }, 150);
+  }
+
+  async handleAvatarUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { Components.toast('Image must be under 5MB', 'error'); return; }
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const base64 = e.target.result;
+      try {
+        const updated = await API.updateProfile({ avatar: base64 });
+        this.user = updated;
+        const display = document.getElementById('profile-avatar-display');
+        if (display) display.innerHTML = `<img src="${base64}" alt="Avatar">`;
+        Components.toast('Profile picture updated!', 'success');
+      } catch (err) { Components.toast(err.message, 'error'); }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async saveProfile(e) {
+    e.preventDefault();
+    const form = new FormData(e.target);
+    const data = Object.fromEntries(form.entries());
+    if (data.hourly_rate) data.hourly_rate = +data.hourly_rate;
+    const btn = document.getElementById('save-profile-btn');
+    btn.disabled = true; btn.textContent = 'Saving...';
+    try {
+      this.user = await API.updateProfile(data);
+      Components.toast('Profile updated successfully!', 'success');
+      btn.disabled = false; btn.textContent = '💾 Save Changes';
+    } catch (err) {
+      Components.toast(err.message, 'error');
+      btn.disabled = false; btn.textContent = '💾 Save Changes';
+    }
+  }
+
+  async saveProfileLocation() {
+    const lat = document.getElementById('profile-loc-lat').value;
+    const lng = document.getElementById('profile-loc-lng').value;
+    const address = document.getElementById('profile-loc-address').value;
+    if (!lat || !lng) { Components.toast('Please set a location first', 'warning'); return; }
+    try {
+      this.user = await API.updateProfile({ latitude: +lat, longitude: +lng, address });
+      Components.toast('Location updated!', 'success');
+      this._initProfileMap(this.user);
+    } catch (err) { Components.toast(err.message, 'error'); }
+  }
+
+  async changePassword(e) {
+    e.preventDefault();
+    const form = new FormData(e.target);
+    try {
+      await API.changePassword(form.get('current_password'), form.get('new_password'));
+      Components.toast('Password changed successfully!', 'success');
+      e.target.reset();
+    } catch (err) { Components.toast(err.message, 'error'); }
+  }
+
+  /* ═══════════════ LOCATION HELPERS ═══════════════ */
+  handleLocationAutocomplete(prefix, query) {
+    clearTimeout(this._acTimeout);
+    const dropdown = document.getElementById(prefix + '-suggestions');
+    if (!dropdown) return;
+    if (query.length < 3) { dropdown.classList.remove('show'); return; }
+    dropdown.innerHTML = '<div class="autocomplete-loading">🔍 Searching...</div>';
+    dropdown.classList.add('show');
+    this._acTimeout = setTimeout(async () => {
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=in&limit=6&addressdetails=1`;
+        const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+        const results = await res.json();
+        if (results.length === 0) {
+          dropdown.innerHTML = '<div class="autocomplete-loading">No results found</div>';
+          return;
+        }
+        dropdown.innerHTML = results.map((r, i) => `
+          <div class="autocomplete-item" onclick="app.selectAutocompleteResult('${prefix}', ${i})">
+            <span class="ac-icon">📍</span>
+            <div class="ac-text">
+              <span class="ac-main">${r.display_name.split(',').slice(0, 2).join(', ')}</span>
+              <span class="ac-sub">${r.display_name}</span>
+            </div>
+          </div>`).join('');
+        this._acResults = results;
+      } catch { dropdown.innerHTML = '<div class="autocomplete-loading">Search error</div>'; }
+    }, 400);
+  }
+
+  selectAutocompleteResult(prefix, index) {
+    const result = this._acResults[index];
+    if (!result) return;
+    const addrInput = document.getElementById(prefix + '-address');
+    const latInput = document.getElementById(prefix + '-lat');
+    const lngInput = document.getElementById(prefix + '-lng');
+    const dropdown = document.getElementById(prefix + '-suggestions');
+    const status = document.getElementById(prefix + '-status');
+    if (addrInput) addrInput.value = result.display_name;
+    if (latInput) latInput.value = result.lat;
+    if (lngInput) lngInput.value = result.lon;
+    if (dropdown) dropdown.classList.remove('show');
+    if (status) status.textContent = '✅ Location set';
+    this._showMiniMap(prefix, +result.lat, +result.lon);
+  }
+
+  detectCurrentLocation(prefix) {
+    if (!navigator.geolocation) { Components.toast('Geolocation not supported', 'error'); return; }
+    const status = document.getElementById(prefix + '-status');
+    if (status) status.textContent = '📡 Detecting...';
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude, lng = pos.coords.longitude;
+        const latInput = document.getElementById(prefix + '-lat');
+        const lngInput = document.getElementById(prefix + '-lng');
+        if (latInput) latInput.value = lat;
+        if (lngInput) lngInput.value = lng;
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18`, { headers: { 'Accept-Language': 'en' } });
+          const data = await res.json();
+          const addrInput = document.getElementById(prefix + '-address');
+          if (addrInput) addrInput.value = data.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        } catch {}
+        if (status) status.textContent = '✅ Location detected!';
+        Components.toast('Location detected successfully!', 'success');
+        this._showMiniMap(prefix, lat, lng);
+      },
+      (err) => {
+        if (status) status.textContent = '';
+        Components.toast('Could not detect location: ' + err.message, 'error');
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
+
+  _showMiniMap(prefix, lat, lng) {
+    const container = document.getElementById(prefix + '-map');
+    if (!container || typeof L === 'undefined') return;
+    container.style.display = 'block';
+    const mapKey = prefix + '-mini';
+    if (this._maps[mapKey]) this._maps[mapKey].remove();
+    const map = L.map(container).setView([lat, lng], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap', maxZoom: 18
+    }).addTo(map);
+    L.marker([lat, lng]).addTo(map);
+    this._maps[mapKey] = map;
   }
 }
 

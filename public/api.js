@@ -34,6 +34,14 @@ const API = {
     return this._request('GET', '/auth/me');
   },
 
+  /* ── Profile ─────────────────────────── */
+  updateProfile(data) {
+    return this._request('PUT', '/profile', data);
+  },
+  changePassword(currentPassword, newPassword) {
+    return this._request('PUT', '/profile/password', { current_password: currentPassword, new_password: newPassword });
+  },
+
   /* ── Services ─────────────────────────── */
   getServices() {
     return this._request('GET', '/services');
@@ -43,8 +51,15 @@ const API = {
   },
 
   /* ── Workers ──────────────────────────── */
-  getNearbyWorkers(lat, lng, radius) {
-    return this._request('GET', `/workers/nearby?lat=${lat}&lng=${lng}&radius=${radius}`);
+  getNearbyWorkers(lat, lng, radius, query = '') {
+    let url = `/workers/nearby?lat=${lat}&lng=${lng}&radius=${radius}`;
+    if (query) url += `&query=${encodeURIComponent(query)}`;
+    return this._request('GET', url);
+  },
+  searchAllWorkers(query = '') {
+    let url = `/workers/nearby?lat=0&lng=0&radius=0`;
+    if (query) url += `&query=${encodeURIComponent(query)}`;
+    return this._request('GET', url);
   },
   toggleAvailability(availability) {
     return this._request('PUT', '/workers/availability', { availability });
