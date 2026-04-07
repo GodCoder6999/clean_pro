@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const path = require('path');
 const db = require('./database');
+const setupAIAgent = require('./ai-agent');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -469,6 +470,9 @@ app.get('/api/admin/bookings', auth, requireRole('admin'), async (req, res) => {
   const result = await db.execute({ sql, args: params });
   res.json(result.rows);
 });
+
+/* AI Agent */
+setupAIAgent(app, db, jwt, JWT_SECRET, addNotification);
 
 /* SPA Fallback */
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
