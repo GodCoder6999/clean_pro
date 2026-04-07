@@ -11,9 +11,9 @@ const db = createClient({
 /* ───────────────────────── Schema & Seed ───────────────────────── */
 async function initializeDatabase() {
   try {
-    // 1. Create Tables
-    await db.executeMultiple(`
-      CREATE TABLE IF NOT EXISTS users (
+    // 1. Create Tables using batch() — more reliable than executeMultiple with Turso
+    await db.batch([
+      `CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         email TEXT UNIQUE NOT NULL,
@@ -30,9 +30,8 @@ async function initializeDatabase() {
         hourly_rate REAL,
         bio TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-
-      CREATE TABLE IF NOT EXISTS services (
+      )`,
+      `CREATE TABLE IF NOT EXISTS services (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         description TEXT,
@@ -42,9 +41,8 @@ async function initializeDatabase() {
         category TEXT,
         active INTEGER DEFAULT 1,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-
-      CREATE TABLE IF NOT EXISTS bookings (
+      )`,
+      `CREATE TABLE IF NOT EXISTS bookings (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         customer_id INTEGER NOT NULL,
         worker_id INTEGER,
@@ -60,9 +58,8 @@ async function initializeDatabase() {
         FOREIGN KEY (customer_id) REFERENCES users(id),
         FOREIGN KEY (worker_id) REFERENCES users(id),
         FOREIGN KEY (service_id) REFERENCES services(id)
-      );
-
-      CREATE TABLE IF NOT EXISTS reviews (
+      )`,
+      `CREATE TABLE IF NOT EXISTS reviews (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         booking_id INTEGER NOT NULL UNIQUE,
         customer_id INTEGER NOT NULL,
@@ -73,9 +70,8 @@ async function initializeDatabase() {
         FOREIGN KEY (booking_id) REFERENCES bookings(id),
         FOREIGN KEY (customer_id) REFERENCES users(id),
         FOREIGN KEY (worker_id) REFERENCES users(id)
-      );
-
-      CREATE TABLE IF NOT EXISTS payments (
+      )`,
+      `CREATE TABLE IF NOT EXISTS payments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         booking_id INTEGER NOT NULL,
         amount REAL NOT NULL,
@@ -84,9 +80,8 @@ async function initializeDatabase() {
         transaction_id TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (booking_id) REFERENCES bookings(id)
-      );
-
-      CREATE TABLE IF NOT EXISTS notifications (
+      )`,
+      `CREATE TABLE IF NOT EXISTS notifications (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
         title TEXT NOT NULL,
@@ -96,8 +91,8 @@ async function initializeDatabase() {
         link TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id)
-      );
-    `);
+      )`
+    ], "write");
 
     // 2. Check if seeding is needed
     const countRes = await db.execute('SELECT COUNT(*) as c FROM users');
