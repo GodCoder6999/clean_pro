@@ -1111,6 +1111,19 @@ h4 { font-size:1.1rem; font-weight:600; }
 #cp-chat.open .cp-window {
   opacity: 1; transform: translateY(0) scale(1); pointer-events: auto;
 }
+#cp-chat.fullscreen .cp-window {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  max-height: 100vh;
+  border-radius: 0;
+  z-index: 100000;
+  transform: none;
+}
+#cp-chat.fullscreen .cp-fab {
+  display: none;
+}
 
 /* ── Header ──────────────────────────────────────────────── */
 .cp-header {

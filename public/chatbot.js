@@ -36,6 +36,7 @@
             </div>
             <div class="cp-header-actions">
               <button class="cp-hdr-btn" onclick="cleanerProChat.reset()" title="New chat">🔄</button>
+              <button class="cp-hdr-btn" onclick="cleanerProChat.toggleFullScreen()" title="Full Screen">⛶</button>
               <button class="cp-hdr-btn" onclick="cleanerProChat.toggle()" title="Minimize">—</button>
             </div>
           </div>
@@ -78,7 +79,14 @@
         this.badge.style.display = 'none';
         setTimeout(() => this.input.focus(), 300);
         this.scrollDown();
+      } else {
+        this.el.classList.remove('fullscreen'); // reset fullscreen
       }
+    }
+
+    toggleFullScreen() {
+      this.el.classList.toggle('fullscreen');
+      this.scrollDown();
     }
 
     /* ── User ─────────────────────────────────────── */

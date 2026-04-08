@@ -11,6 +11,12 @@ const db = createClient({
 /* ───────────────────────── Schema & Seed ───────────────────────── */
 async function initializeDatabase() {
   try {
+    try {
+      await db.execute('ALTER TABLE users ADD COLUMN google_id TEXT UNIQUE');
+    } catch (e) {
+      // Column already exists or table doesn't exist yet
+    }
+
     // 1. Create Tables using batch() — more reliable than executeMultiple with Turso
     await db.batch([
       `CREATE TABLE IF NOT EXISTS users (
@@ -22,6 +28,7 @@ async function initializeDatabase() {
         phone TEXT,
         address TEXT,
         avatar TEXT,
+        google_id TEXT UNIQUE,
         status TEXT DEFAULT 'active' CHECK(status IN ('active','inactive','pending','suspended')),
         latitude REAL,
         longitude REAL,
