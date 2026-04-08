@@ -364,6 +364,11 @@ async function localChatLogic(message, history, user, db, addNotification) {
   // ===== WIZARD STATE MACHINE =====
   if (state.step) {
     if (state.step === 'select_service') {
+      if (m === 'services' || m === 'available services') {
+        const raw = await executeTool('get_services', {}, user, db, addNotification);
+        return { response: `${formatToolResult('get_services', raw)}\n\nNow, please reply with the **Numeric ID** of the service you want to book. <!--state:${JSON.stringify(state)}-->`, actionPerformed: false };
+      }
+
       const match = m.match(/^(\d+)$/);
       if (!match) return { response: "Let's try that again. Please reply with the **Numeric ID** of the service you want to book (e.g. `1`). Or type `cancel` to stop. <!--state:" + JSON.stringify(state) + "-->", actionPerformed: false };
       
