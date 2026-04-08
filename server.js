@@ -100,56 +100,62 @@ app.get('/api/auth/me', auth, async (req, res) => {
 });
 
 /* ═══════════════ GOOGLE AUTH ═══════════════ */
-if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-  passport.use(new GoogleStrategy({
-      clientID: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "/api/auth/google/callback"
-    },
-    async function(accessToken, refreshToken, profile, cb) {
-      try {
-        const email = profile.emails && profile.emails.length > 0 ? profile.emails[0].value : null;
-        if (!email) return cb(new Error("No email found from Google profile"));
-        
-        let userRes = await db.execute({ sql: 'SELECT * FROM users WHERE google_id=?', args: [profile.id] });
-        if (userRes.rows.length === 0) {
-          userRes = await db.execute({ sql: 'SELECT * FROM users WHERE email=?', args: [email] });
-          if (userRes.rows.length > 0) {
-            await db.execute({ sql: 'UPDATE users SET google_id=? WHERE id=?', args: [profile.id, userRes.rows[0].id] });
-            userRes = await db.execute({ sql: 'SELECT * FROM users WHERE id=?', args: [userRes.rows[0].id] });
-          }
+passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID || 'dummy',
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'dummy',
+    callbackURL: "/api/auth/google/callback"
+  },
+  async function(accessToken, refreshToken, profile, cb) {
+    try {
+      const email = profile.emails && profile.emails.length > 0 ? profile.emails[0].value : null;
+      if (!email) return cb(new Error("No email found from Google profile"));
+      
+      let userRes = await db.execute({ sql: 'SELECT * FROM users WHERE google_id=?', args: [profile.id] });
+      if (userRes.rows.length === 0) {
+        userRes = await db.execute({ sql: 'SELECT * FROM users WHERE email=?', args: [email] });
+        if (userRes.rows.length > 0) {
+          await db.execute({ sql: 'UPDATE users SET google_id=? WHERE id=?', args: [profile.id, userRes.rows[0].id] });
+          userRes = await db.execute({ sql: 'SELECT * FROM users WHERE id=?', args: [userRes.rows[0].id] });
         }
-        
-        let user;
-        if (userRes.rows.length === 0) {
-          const dummyHash = bcrypt.hashSync(Math.random().toString(36), 10);
-          const name = profile.displayName || email.split('@')[0];
-          const result = await db.execute({
-            sql: 'INSERT INTO users (name, email, password, role, google_id, status) VALUES (?, ?, ?, ?, ?, ?)',
-            args: [name, email, dummyHash, 'customer', profile.id, 'active']
-          });
-          const inserted = await db.execute({ sql: 'SELECT * FROM users WHERE id=?', args: [Number(result.lastInsertRowid)] });
-          user = inserted.rows[0];
-        } else {
-          user = userRes.rows[0];
-        }
-        return cb(null, user);
-      } catch (err) {
-        return cb(err);
       }
+      
+      let user;
+      if (userRes.rows.length === 0) {
+        const dummyHash = bcrypt.hashSync(Math.random().toString(36), 10);
+        const name = profile.displayName || email.split('@')[0];
+        const result = await db.execute({
+          sql: 'INSERT INTO users (name, email, password, role, google_id, status) VALUES (?, ?, ?, ?, ?, ?)',
+          args: [name, email, dummyHash, 'customer', profile.id, 'active']
+        });
+        const inserted = await db.execute({ sql: 'SELECT * FROM users WHERE id=?', args: [Number(result.lastInsertRowid)] });
+        user = inserted.rows[0];
+      } else {
+        user = userRes.rows[0];
+      }
+      return cb(null, user);
+    } catch (err) {
+      return cb(err);
     }
-  ));
+  }
+));
 
-  app.get('/api/auth/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }));
+app.get('/api/auth/google', (req, res, next) => {
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    return res.redirect('/#/login?error=google_oauth_not_configured');
+  }
+  passport.authenticate('google', { scope: ['profile', 'email'], session: false })(req, res, next);
+});
 
-  app.get('/api/auth/google/callback', passport.authenticate('google', { session: false, failureRedirect: '/#/login' }),
-    function(req, res) {
-      const user = req.user;
-      const token = jwt.sign({ id: user.id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
-      res.redirect(`/#/login?token=${token}`);
-    }
-  );
-}
+app.get('/api/auth/google/callback', (req, res, next) => {
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    return res.redirect('/#/login?error=google_oauth_not_configured');
+  }
+  passport.authenticate('google', { session: false, failureRedirect: '/#/login' })(req, res, next);
+}, function(req, res) {
+  const user = req.user;
+  const token = jwt.sign({ id: user.id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+  res.redirect(`/#/login?token=${token}`);
+});
 
 /* ═══════════════ PROFILE ═══════════════ */
 app.put('/api/profile', auth, async (req, res) => {

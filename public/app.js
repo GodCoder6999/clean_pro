@@ -45,6 +45,9 @@ class App {
           await this.loadNotifications();
         } catch { localStorage.removeItem('token'); }
       }
+      if (qs.has('error') && qs.get('error') === 'google_oauth_not_configured') {
+        Components.toast('Google Sign-in is not configured yet. (Missing Client ID)', 'error');
+      }
       path = path.substring(0, queryIdx);
       window.history.replaceState(null, '', window.location.pathname + '#' + path);
     }
