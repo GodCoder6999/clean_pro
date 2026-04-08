@@ -1,253 +1,6 @@
 /* ═══════════════════════════════════════════════════════════
-   CleanerPro AI Agent — Groq + Llama 3.3 70B with Tool Calling
+   CleanerPro Local Rule-Based Agent (Wizard Mode) — No API Required
    ═══════════════════════════════════════════════════════════ */
-
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
-const GROQ_MODEL = 'llama-3.1-8b-instant';
-const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-
-/* ── System Prompt ─────────────────────────────────────── */
-function buildSystemPrompt(user) {
-  let p = `You are CleanerPro AI 🤖, the intelligent assistant for CleanerPro — India's premier home cleaning services platform. You are warm, helpful, professional, and concise.
-
-## Platform Knowledge
-- CleanerPro connects customers with vetted, professional cleaning workers across India.
-- All prices are in Indian Rupees (₹).
-- The booking lifecycle: PENDING → ACCEPTED → IN_PROGRESS → COMPLETED (also REJECTED, CANCELLED).
-- It's FREE to sign up for both customers and workers.
-- Workers go through admin approval before receiving jobs.
-- Customers can cancel bookings in PENDING or ACCEPTED status.
-- Workers set their own hourly rates and availability (online/offline).
-- Payment methods: Credit Card, Debit Card, UPI, PayPal.
-
-## Behavior Rules
-- Use tools to fetch REAL data — NEVER make up booking IDs, prices, or worker names.
-- Keep responses concise (2-4 sentences for simple queries, more for complex ones).
-- Use emojis sparingly for warmth.
-- Format prices as ₹X,XXX.
-- If a user asks something outside the platform scope, politely redirect.
-- IMPORTANT: When you use a tool and get results, present them in a user-friendly manner, do NOT dump raw JSON.
-
-## ⚠️ CRITICAL BOOKING RULES — FOLLOW STRICTLY ⚠️
-
-Creating a booking MUST follow this exact multi-step flow. NEVER skip steps or combine them.
-
-### Step 1 — Confirm the service
-- Call get_services to fetch available services.
-- Present them clearly with name, price, and duration.
-- Ask the user: "Which service would you like to book?"
-- WAIT for the user to explicitly choose a service by name or number before proceeding.
-
-### Step 2 — Find available workers
-- Only after the user has chosen a service, call find_workers to fetch nearby available workers.
-- Present each worker with: name, specialization, rating, and hourly rate.
-- Ask the user: "Which worker would you like? You can also ask me to show details about any worker."
-- If the user asks for details about a worker, call get_worker_profile and show their full profile including bio and reviews.
-- WAIT for the user to explicitly choose a worker before proceeding.
-
-### Step 3 — Collect booking details
-- Only after service AND worker are chosen, ask for:
-  1. Preferred date (YYYY-MM-DD)
-  2. Preferred time (HH:MM, 24h)
-  3. Service address (pre-fill with user's address if available but confirm it)
-  4. Any special notes or instructions (optional)
-- WAIT for the user to provide all required details.
-
-### Step 4 — Confirm and create
-- Summarize the full booking details:
-  • Service: [name] — ₹[price]
-  • Worker: [name] — ₹[hourly_rate]/hr
-  • Date & Time: [date] at [time]
-  • Address: [address]
-  • Notes: [notes or "None"]
-  • Total Amount: ₹[base_price from service]
-- Ask: "Shall I confirm this booking?" and WAIT for explicit confirmation ("yes", "confirm", "book it", etc.).
-- Only call create_booking AFTER the user says yes.
-- Pass total_price as the service's base_price.
-
-### ABSOLUTE RULES:
-- NEVER call create_booking unless ALL of these are confirmed by the user: service_id, worker_id, scheduled_date, scheduled_time, address, AND the user has said "yes" or "confirm".
-- NEVER assume or guess a service or worker — the user must explicitly choose.
-- NEVER create a booking in one shot from a vague request like "book a cleaning" — always go through the steps.
-- If the user says "book a cleaning" or similar, start from Step 1.`;
-
-  if (user) {
-    p += `\n\n## Current User\n- Name: ${user.name}\n- Role: ${user.role}\n- Status: ${user.status}`;
-    if (user.role === 'worker') {
-      p += `\n- Availability: ${user.availability}\n- Specialization: ${user.specialization || 'Not set'}\n- Rate: ₹${user.hourly_rate || 'Not set'}/hr`;
-      if (user.status === 'pending') p += `\n⚠️ Account is PENDING admin approval. Cannot accept jobs yet.`;
-    }
-    if (user.address) p += `\n- Saved Address: ${user.address}`;
-    p += `\n\nPersonalize responses for ${user.name} (${user.role}).`;
-  } else {
-    p += `\n\n## Context\nUser is NOT logged in (guest). Only answer questions. Guide them to sign up. Do NOT call any tools.`;
-  }
-  return p;
-}
-
-/* ── Tool Definitions ──────────────────────────────────── */
-const TOOLS = [
-  {
-    name: 'get_services',
-    desc: 'Get all available cleaning services with prices and duration. Call this FIRST when a user wants to book.',
-    params: {},
-    roles: ['customer','worker','admin']
-  },
-  {
-    name: 'get_my_bookings',
-    desc: 'Get current user bookings with status, service, and assigned person info',
-    params: {},
-    roles: ['customer','worker']
-  },
-  {
-    name: 'get_booking_details',
-    desc: 'Get full details of a specific booking',
-    params: {
-      booking_id: { type: 'integer', description: 'Booking ID number' }
-    },
-    req: ['booking_id'],
-    roles: ['customer','worker','admin']
-  },
-  {
-    name: 'create_booking',
-    desc: `Create a new cleaning service booking. 
-IMPORTANT: Only call this tool after ALL of the following have been explicitly confirmed by the user:
-1. service_id (user chose a specific service)
-2. worker_id (user chose a specific worker)
-3. scheduled_date in YYYY-MM-DD format
-4. scheduled_time in HH:MM 24h format
-5. address (confirmed by user)
-6. User has said "yes" or "confirm" to the booking summary.
-The total_price should be set to the service's base_price.`,
-    params: {
-      service_id: { type: 'integer', description: 'Service ID — must be chosen by user' },
-      worker_id: { type: 'integer', description: 'Worker ID — must be chosen by user' },
-      scheduled_date: { type: 'string', description: 'Date in YYYY-MM-DD format' },
-      scheduled_time: { type: 'string', description: 'Time in HH:MM 24h format' },
-      address: { type: 'string', description: 'Service address confirmed by user' },
-      notes: { type: 'string', description: 'Optional special instructions' },
-      total_price: { type: 'number', description: 'Total price — use the service base_price' }
-    },
-    req: ['service_id', 'worker_id', 'scheduled_date', 'scheduled_time', 'address'],
-    roles: ['customer']
-  },
-  {
-    name: 'cancel_booking',
-    desc: 'Cancel a PENDING or ACCEPTED booking',
-    params: {
-      booking_id: { type: 'integer', description: 'Booking ID to cancel' }
-    },
-    req: ['booking_id'],
-    roles: ['customer']
-  },
-  {
-    name: 'find_workers',
-    desc: 'Search available workers by name or specialization. Call this AFTER the user has chosen a service, to show who can do the job.',
-    params: {
-      query: { type: 'string', description: 'Optional search term (e.g. specialization or name)' }
-    },
-    roles: ['customer']
-  },
-  {
-    name: 'get_worker_profile',
-    desc: 'Get a worker\'s full profile including rating, bio, and recent reviews. Call this when a user asks for more details about a specific worker.',
-    params: {
-      worker_id: { type: 'integer', description: 'Worker user ID' }
-    },
-    req: ['worker_id'],
-    roles: ['customer','admin']
-  },
-  {
-    name: 'accept_job',
-    desc: 'Accept a pending job request',
-    params: { booking_id: { type: 'integer', description: 'Booking ID' } },
-    req: ['booking_id'],
-    roles: ['worker']
-  },
-  {
-    name: 'reject_job',
-    desc: 'Reject a pending job request',
-    params: { booking_id: { type: 'integer', description: 'Booking ID' } },
-    req: ['booking_id'],
-    roles: ['worker']
-  },
-  {
-    name: 'start_job',
-    desc: 'Start an accepted job (set to IN_PROGRESS)',
-    params: { booking_id: { type: 'integer', description: 'Booking ID' } },
-    req: ['booking_id'],
-    roles: ['worker']
-  },
-  {
-    name: 'complete_job',
-    desc: 'Mark a job as completed',
-    params: { booking_id: { type: 'integer', description: 'Booking ID' } },
-    req: ['booking_id'],
-    roles: ['worker']
-  },
-  {
-    name: 'toggle_availability',
-    desc: 'Set worker online/offline status',
-    params: {
-      status: { type: 'string', enum: ['online','offline'], description: 'Availability status' }
-    },
-    req: ['status'],
-    roles: ['worker']
-  },
-  {
-    name: 'get_platform_stats',
-    desc: 'Get platform-wide statistics (users, bookings, revenue)',
-    params: {},
-    roles: ['admin']
-  },
-  {
-    name: 'get_pending_approvals',
-    desc: 'List workers awaiting admin approval',
-    params: {},
-    roles: ['admin']
-  },
-  {
-    name: 'approve_worker',
-    desc: 'Approve a pending worker registration',
-    params: { user_id: { type: 'integer', description: 'Worker user ID to approve' } },
-    req: ['user_id'],
-    roles: ['admin']
-  },
-  {
-    name: 'get_notifications',
-    desc: 'Get recent notifications for current user',
-    params: {},
-    roles: ['customer','worker','admin']
-  },
-  {
-    name: 'get_all_bookings',
-    desc: 'Get all platform bookings (admin)',
-    params: { status: { type: 'string', description: 'Optional status filter' } },
-    roles: ['admin']
-  },
-  {
-    name: 'get_all_users',
-    desc: 'Get all registered users (admin)',
-    params: { role: { type: 'string', description: 'Optional role filter' } },
-    roles: ['admin']
-  },
-];
-
-function getToolsForRole(role) {
-  if (!role) return [];
-  return TOOLS.filter(t => t.roles.includes(role)).map(t => ({
-    type: 'function',
-    function: {
-      name: t.name,
-      description: t.desc,
-      parameters: {
-        type: 'object',
-        properties: t.params || {},
-        required: t.req || []
-      }
-    }
-  }));
-}
 
 /* ── Tool Executor ─────────────────────────────────────── */
 async function executeTool(name, args, user, db, addNotification) {
@@ -293,26 +46,10 @@ async function executeTool(name, args, user, db, addNotification) {
         }
       }
 
-      case 'get_booking_details': {
-        const r = await db.execute({
-          sql: `SELECT b.*, s.name as service_name, s.icon as service_icon, s.base_price,
-                  w.name as worker_name, c.name as customer_name
-                FROM bookings b
-                JOIN services s ON b.service_id=s.id
-                LEFT JOIN users w ON b.worker_id=w.id
-                JOIN users c ON b.customer_id=c.id
-                WHERE b.id=?`,
-          args: [args.booking_id]
-        });
-        if (!r.rows.length) return JSON.stringify({ error: 'Booking not found' });
-        return JSON.stringify(r.rows[0]);
-      }
-
       case 'create_booking': {
-        // Final safety guard: ensure worker_id and service_id are present
         if (!args.worker_id || !args.service_id) {
           return JSON.stringify({
-            error: 'Cannot create booking — both a service and a worker must be selected by the user first.'
+            error: 'Cannot create booking — both a service and a worker must be selected.'
           });
         }
         if (!args.scheduled_date || !args.scheduled_time || !args.address) {
@@ -321,7 +58,6 @@ async function executeTool(name, args, user, db, addNotification) {
           });
         }
 
-        // Fetch service to get correct price
         const svcRes = await db.execute({
           sql: 'SELECT id, name, base_price FROM services WHERE id=? AND active=1',
           args: [args.service_id]
@@ -331,7 +67,6 @@ async function executeTool(name, args, user, db, addNotification) {
         }
         const service = svcRes.rows[0];
 
-        // Validate worker exists and is active/online
         const workerRes = await db.execute({
           sql: "SELECT id, name, hourly_rate FROM users WHERE id=? AND role='worker' AND status='active'",
           args: [args.worker_id]
@@ -360,14 +95,12 @@ async function executeTool(name, args, user, db, addNotification) {
 
         const newId = Number(r.lastInsertRowid);
 
-        // Notify the worker
         await addNotification(
           args.worker_id,
           'New Job Request',
-          `${user.name} booked ${service.name} via AI assistant.`,
+          `${user.name} booked ${service.name}.`,
           'info'
         );
-        // Notify the customer
         await addNotification(
           user.id,
           'Booking Created',
@@ -414,7 +147,6 @@ async function executeTool(name, args, user, db, addNotification) {
             (w.bio || '').toLowerCase().includes(q)
           );
         }
-        // Attach ratings
         for (const w of rows) {
           const avg = await db.execute({
             sql: 'SELECT AVG(rating) as avg, COUNT(*) as count FROM reviews WHERE worker_id=?',
@@ -532,7 +264,7 @@ async function executeTool(name, args, user, db, addNotification) {
           db.execute("SELECT COUNT(*) as c FROM users WHERE role='worker' AND status='pending'"),
           db.execute("SELECT COUNT(*) as c FROM users WHERE role='customer'"),
           db.execute('SELECT COUNT(*) as c FROM bookings'),
-          db.execute("SELECT COALESCE(SUM(amount),0) as total FROM payments WHERE status='completed'")
+          db.execute("SELECT COALESCE(SUM(total_price),0) as total FROM bookings WHERE status='COMPLETED'")
         ]);
         return JSON.stringify({
           totalUsers: tu.rows[0].c,
@@ -565,39 +297,6 @@ async function executeTool(name, args, user, db, addNotification) {
         return JSON.stringify({ success: true, message: 'Worker approved.' });
       }
 
-      case 'get_notifications': {
-        const r = await db.execute({
-          sql: 'SELECT title, message, type, is_read, created_at FROM notifications WHERE user_id=? ORDER BY created_at DESC LIMIT 10',
-          args: [user.id]
-        });
-        return JSON.stringify(r.rows);
-      }
-
-      case 'get_all_bookings': {
-        let sql = `SELECT b.id, b.status, b.scheduled_date, b.total_price,
-                    s.name as service_name,
-                    c.name as customer_name,
-                    w.name as worker_name
-                  FROM bookings b
-                  JOIN services s ON b.service_id=s.id
-                  JOIN users c ON b.customer_id=c.id
-                  LEFT JOIN users w ON b.worker_id=w.id`;
-        const p = [];
-        if (args.status) { sql += ' WHERE b.status=?'; p.push(args.status); }
-        sql += ' ORDER BY b.created_at DESC LIMIT 20';
-        const r = await db.execute({ sql, args: p });
-        return JSON.stringify(r.rows);
-      }
-
-      case 'get_all_users': {
-        let sql = 'SELECT id, name, email, role, status, created_at FROM users';
-        const p = [];
-        if (args.role) { sql += ' WHERE role=?'; p.push(args.role); }
-        sql += ' ORDER BY created_at DESC LIMIT 20';
-        const r = await db.execute({ sql, args: p });
-        return JSON.stringify(r.rows);
-      }
-
       default:
         return JSON.stringify({ error: 'Unknown function' });
     }
@@ -606,78 +305,225 @@ async function executeTool(name, args, user, db, addNotification) {
   }
 }
 
-/* ── Chat with Groq ────────────────────────────────────── */
-async function chatWithGroq(message, history, user, db, addNotification) {
-  const systemPrompt = buildSystemPrompt(user);
-  const tools = getToolsForRole(user?.role);
-  const msgs = [
-    { role: 'system', content: systemPrompt },
-    ...history.slice(-14),
-    { role: 'user', content: message }
-  ];
+/* ── Result Formatter ────────────────────────────────────── */
+function formatToolResult(toolName, rawJson) {
+  let data;
+  try { data = JSON.parse(rawJson); } catch { return rawJson; }
+  
+  if (data.error) return `⚠️ Error: ${data.error}`;
+  if (data.success && data.message) return `✅ ${data.message}`;
 
-  let actionPerformed = false;
-  let iterations = 0;
+  switch (toolName) {
+    case 'get_services':
+      if (!data.length) return "No services available right now.";
+      return "Here are the available services:\n\n" + data.map(s => `**ID: ${s.id}** — ${s.icon} **${s.name}**\n${s.description}\nPrice: ₹${s.base_price} | Duration: ${s.duration_hours}h`).join('\n\n');
+    case 'get_my_bookings':
+      if (!data.length) return "You don't have any bookings matching this criteria yet.";
+      return "Here are your bookings:\n\n" + data.map(b => `**Booking ID: #${b.id}** [${b.status}]\n${b.service_icon} ${b.service_name} • ₹${b.total_price}\nDate: ${b.scheduled_date} at ${b.scheduled_time}`).join('\n\n');
+    case 'find_workers':
+      if (!data.length) return "No workers currently available.";
+      return "Available Workers:\n\n" + data.map(w => `**ID: ${w.id}** — ${w.name} (${w.specialization || 'General cleaning'})\n⭐ ${w.rating} (${w.review_count} reviews) | Rate: ₹${w.hourly_rate}/hr\n`).join('\n') + "\n\n*To see a full profile, type \`PROFILE <WorkerID>\`*";
+    case 'get_worker_profile':
+      return `**${data.name}** (${data.specialization || 'General'}) - ₹${data.hourly_rate}/hr\n⭐ ${data.rating} (${data.review_count} reviews)\nBio: ${data.bio}\nStatus: ${data.status} | Availability: ${data.availability}\n\nRecent Reviews:\n${(data.recent_reviews||[]).map(r => `> "${r.comment}" - ${r.customer_name}`).join('\n') || 'None yet.'}`;
+    case 'get_platform_stats':
+      return `📊 **Platform Stats**\n\nUsers: ${data.totalUsers}\nActive Workers: ${data.activeWorkers}\nPending Workers: ${data.pendingWorkers}\nCustomers: ${data.customers}\nTotal Bookings: ${data.totalBookings}\nRevenue: ₹${data.revenue}`;
+    case 'get_pending_approvals':
+      if (!data.length) return "No workers waiting for approval.";
+      return "Pending Approvals:\n" + data.map(u => `ID ${u.id}: ${u.name} (${u.email})`).join('\n') + "\n\n*To approve a worker, type \`APPROVE <WorkerID>\`*";
+    default:
+      if (Array.isArray(data)) return JSON.stringify(data, null, 2);
+      return data.message || "Action completed.";
+  }
+}
 
-  while (iterations < 5) {
-    iterations++;
-    const body = {
-      model: GROQ_MODEL,
-      messages: msgs,
-      temperature: 0.4,   // Lower temp for more predictable step-following
-      max_tokens: 1024
-    };
-    if (tools.length > 0) {
-      body.tools = tools;
-      body.tool_choice = 'auto';
-    }
+/* ── Local Chat Rule Engine (Wizard) ───────────────────────── */
+async function localChatLogic(message, history, user, db, addNotification) {
+  if (!user) {
+    return { response: "I'm the CleanerPro Assistant! 👋 Please sign in or sign up to interact with me and book services.", actionPerformed: false };
+  }
 
-    const res = await fetch(GROQ_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
-    });
-
-    if (!res.ok) {
-      const err = await res.text();
-      console.error('Groq API error:', err);
-      throw new Error('AI service unavailable');
-    }
-
-    const data = await res.json();
-    const choice = data.choices[0];
-
-    if (choice.message.tool_calls && choice.message.tool_calls.length > 0) {
-      msgs.push(choice.message);
-      for (const tc of choice.message.tool_calls) {
-        let fnArgs = {};
-        try { fnArgs = JSON.parse(tc.function.arguments || '{}'); } catch {}
-
-        const result = await executeTool(tc.function.name, fnArgs, user, db, addNotification);
-        msgs.push({ role: 'tool', tool_call_id: tc.id, content: result });
-
-        const actionTools = [
-          'create_booking', 'cancel_booking',
-          'accept_job', 'reject_job', 'start_job', 'complete_job',
-          'toggle_availability', 'approve_worker'
-        ];
-        if (actionTools.includes(tc.function.name)) actionPerformed = true;
+  const m = message.trim().toLowerCase();
+  
+  // -- EXTRACT INVISIBLE STATE --
+  let state = {};
+  if (history && history.length > 0) {
+    const lastMsg = [...history].reverse().find(x => x.role === 'assistant');
+    if (lastMsg && lastMsg.content) {
+      const stateMatch = lastMsg.content.match(/<!--state:(.*?)-->/);
+      if (stateMatch) {
+        try { state = JSON.parse(stateMatch[1]); } catch(e) {}
       }
-    } else {
-      return {
-        response: choice.message.content || "I'm sorry, I couldn't generate a response.",
-        actionPerformed
-      };
     }
   }
 
-  return {
-    response: "I completed the request, but please check your dashboard for the latest updates.",
-    actionPerformed
-  };
+  // Handle Cancellation during wizard
+  if (state.step && (m === 'cancel' || m === 'stop' || m === 'restart')) {
+    return { response: "Booking Wizard cancelled. How else can I help you?", actionPerformed: false };
+  }
+
+  // ===== WIZARD STATE MACHINE =====
+  if (state.step) {
+    if (state.step === 'select_service') {
+      const match = m.match(/^(\d+)$/);
+      if (!match) return { response: "Let's try that again. Please reply with the **Numeric ID** of the service you want to book (e.g. `1`). Or type `cancel` to stop. <!--state:" + JSON.stringify(state) + "-->", actionPerformed: false };
+      
+      const new_state = { step: 'select_worker', service_id: Number(match[1]) };
+      const resMsg = `Great, you selected Service ID #${match[1]}! \n\nNow, please reply with the **Numeric ID** of the worker you want to hire. (Unsure? Type \`workers\` to see a list) <!--state:${JSON.stringify(new_state)}-->`;
+      return { response: resMsg, actionPerformed: false };
+    }
+
+    if (state.step === 'select_worker') {
+      if (m === 'workers' || m === 'find a worker') {
+        const raw = await executeTool('find_workers', { query: '' }, user, db, addNotification);
+        return { response: `${formatToolResult('find_workers', raw)}\n\nNow, please reply with the **Numeric ID** of the worker you want to hire. <!--state:${JSON.stringify(state)}-->`, actionPerformed: false };
+      }
+      
+      const match = m.match(/^(\d+)$/);
+      if (!match) return { response: "Please reply with the exact **Numeric ID** of the worker (e.g. `2`). Or type `cancel` to stop. <!--state:" + JSON.stringify(state) + "-->", actionPerformed: false };
+      
+      const new_state = { ...state, step: 'enter_date', worker_id: Number(match[1]) };
+      const resMsg = `Awesome. Booking Worker ID #${match[1]}!\n\nWhat **Date** would you like to schedule? (Please use \`YYYY-MM-DD\` format, e.g. \`2026-04-10\`) <!--state:${JSON.stringify(new_state)}-->`;
+      return { response: resMsg, actionPerformed: false };
+    }
+
+    if (state.step === 'enter_date') {
+      const match = m.match(/^(\d{4}-\d{2}-\d{2})$/);
+      if (!match) return { response: "Invalid date format. Please reply exactly like \`2026-04-10\`. <!--state:" + JSON.stringify(state) + "-->", actionPerformed: false };
+
+      const new_state = { ...state, step: 'enter_time', date: match[1] };
+      const resMsg = `Got it for ${match[1]}.\n\nWhat **Time**? (Please use 24h \`HH:MM\` format, e.g. \`14:00\`) <!--state:${JSON.stringify(new_state)}-->`;
+      return { response: resMsg, actionPerformed: false };
+    }
+
+    if (state.step === 'enter_time') {
+      const match = m.match(/^(\d{2}:\d{2})$/);
+      if (!match) return { response: "Invalid time format. Please reply exactly like \`14:00\`. <!--state:" + JSON.stringify(state) + "-->", actionPerformed: false };
+
+      const new_state = { ...state, step: 'enter_address', time: match[1] };
+      const resMsg = `Scheduled for ${match[1]}.\n\nFinally, please type the **Address** for the cleaning: <!--state:${JSON.stringify(new_state)}-->`;
+      return { response: resMsg, actionPerformed: false };
+    }
+
+    if (state.step === 'enter_address') {
+      if (m.length < 3) return { response: "Please provide a valid address. <!--state:" + JSON.stringify(state) + "-->", actionPerformed: false };
+      
+      // Execute the Booking!
+      const raw = await executeTool('create_booking', {
+        service_id: state.service_id,
+        worker_id: state.worker_id,
+        scheduled_date: state.date,
+        scheduled_time: state.time,
+        address: message.trim()
+      }, user, db, addNotification);
+      
+      return { response: formatToolResult('create_booking', raw), actionPerformed: true };
+    }
+  }
+
+  // ===== STANDARD COMMANDS & CHIPS =====
+  const exactCancel = m.match(/cancel\s+booking\s+(\d+)|cancel\s+(\d+)/);
+  if (exactCancel) {
+    const id = exactCancel[1] || exactCancel[2];
+    const raw = await executeTool('cancel_booking', { booking_id: Number(id) }, user, db, addNotification);
+    return { response: formatToolResult('cancel_booking', raw), actionPerformed: true };
+  }
+
+  const exactAccept = m.match(/accept\s+(\d+)/);
+  if (exactAccept) {
+    const id = exactAccept[1];
+    const raw = await executeTool('accept_job', { booking_id: Number(id) }, user, db, addNotification);
+    return { response: formatToolResult('accept_job', raw), actionPerformed: true };
+  }
+
+  const exactStart = m.match(/start\s+(\d+)/);
+  if (exactStart) {
+    const id = exactStart[1];
+    const raw = await executeTool('start_job', { booking_id: Number(id) }, user, db, addNotification);
+    return { response: formatToolResult('start_job', raw), actionPerformed: true };
+  }
+
+  const exactComplete = m.match(/complete\s+(\d+)/);
+  if (exactComplete) {
+    const id = exactComplete[1];
+    const raw = await executeTool('complete_job', { booking_id: Number(id) }, user, db, addNotification);
+    return { response: formatToolResult('complete_job', raw), actionPerformed: true };
+  }
+  
+  const exactReject = m.match(/reject\s+(\d+)/);
+  if (exactReject) {
+    const id = exactReject[1];
+    const raw = await executeTool('reject_job', { booking_id: Number(id) }, user, db, addNotification);
+    return { response: formatToolResult('reject_job', raw), actionPerformed: true };
+  }
+
+  const exactApprove = m.match(/approve\s+(\d+)/);
+  if (exactApprove) {
+    const id = exactApprove[1];
+    if (user.role !== 'admin') return { response: "You don't have admin permissions.", actionPerformed: false };
+    const raw = await executeTool('approve_worker', { user_id: Number(id) }, user, db, addNotification);
+    return { response: formatToolResult('approve_worker', raw), actionPerformed: true };
+  }
+
+  const exactProfile = m.match(/profile\s+(\d+)/);
+  if (exactProfile) {
+    const id = exactProfile[1];
+    const raw = await executeTool('get_worker_profile', { worker_id: Number(id) }, user, db, addNotification);
+    return { response: formatToolResult('get_worker_profile', raw), actionPerformed: false };
+  }
+
+  if (m === 'available services' || m === 'services') {
+    const raw = await executeTool('get_services', {}, user, db, addNotification);
+    return { response: formatToolResult('get_services', raw), actionPerformed: false };
+  }
+  
+  if (m === 'show my bookings' || m === 'my job requests' || m === 'active jobs' || m === 'job history') {
+    const raw = await executeTool('get_my_bookings', {}, user, db, addNotification);
+    let extra = user.role === 'customer' 
+                  ? "\n\n*To cancel a pending booking, type \`CANCEL <BookingID>\`*"
+                  : "\n\n*Manage jobs by typing \`ACCEPT <ID>\`, \`REJECT <ID>\`, \`START <ID>\`, or \`COMPLETE <ID>\`*";
+    const res = formatToolResult('get_my_bookings', raw);
+    return { response: res.includes('Here are') ? res + extra : res, actionPerformed: false };
+  }
+
+  if (m === 'find a worker' || m === 'workers') {
+    const raw = await executeTool('find_workers', { query: '' }, user, db, addNotification);
+    return { response: formatToolResult('find_workers', raw), actionPerformed: false };
+  }
+
+  if (m === 'platform stats') {
+    if (user.role !== 'admin') return { response: "You don't have admin permissions.", actionPerformed: false };
+    const raw = await executeTool('get_platform_stats', {}, user, db, addNotification);
+    return { response: formatToolResult('get_platform_stats', raw), actionPerformed: false };
+  }
+
+  if (m === 'pending approvals') {
+    if (user.role !== 'admin') return { response: "You don't have admin permissions.", actionPerformed: false };
+    const raw = await executeTool('get_pending_approvals', {}, user, db, addNotification);
+    return { response: formatToolResult('get_pending_approvals', raw), actionPerformed: false };
+  }
+
+  if (m === 'toggle availability') {
+    if (user.role !== 'worker') return { response: "Only workers can toggle availability.", actionPerformed: false };
+    const newStatus = user.availability === 'online' ? 'offline' : 'online';
+    const raw = await executeTool('toggle_availability', { status: newStatus }, user, db, addNotification);
+    return { response: formatToolResult('toggle_availability', raw) + `\n\nYour status is now ${newStatus.toUpperCase()}.`, actionPerformed: true };
+  }
+
+  // Initiate Booking Wizard
+  if (m === 'help me book' || m.includes('book')) {
+    const start_state = { step: 'select_service' };
+    return {
+      response: `Let's book a service! \n\nPlease reply with the **Numeric ID** of the service you'd like to book. \n\n*(Unsure? Type \`services\` to see a list!)* <!--state:${JSON.stringify(start_state)}-->`,
+      actionPerformed: false
+    }
+  }
+
+  const isGreeting = ['hello','hi','hey','greetings'].includes(m);
+  if (isGreeting) {
+    return { response: `Hello ${user.name}! 👋 I am your CleanerPro automated assistant. Click one of the quick-action chips above or type "Help me book" to start the booking wizard!`, actionPerformed: false };
+  }
+
+  return { response: `I don't understand that command. 🤖 Try clicking the quick-action chips above, or type \`Help me book\` to start the interactive booking wizard!`, actionPerformed: false };
 }
 
 /* ── Export setup function ─────────────────────────────── */
@@ -697,9 +543,6 @@ module.exports = function setupAIAgent(app, db, jwtLib, jwtSecret, addNotificati
 
   app.post('/api/ai/chat', optionalAuth, async (req, res) => {
     try {
-      if (!GROQ_API_KEY) {
-        return res.status(500).json({ error: 'AI agent not configured (missing API key)' });
-      }
       const { message, history } = req.body;
       if (!message) return res.status(400).json({ error: 'Message is required' });
 
@@ -715,11 +558,11 @@ module.exports = function setupAIAgent(app, db, jwtLib, jwtSecret, addNotificati
         }
       }
 
-      const result = await chatWithGroq(message, history || [], user, db, addNotification);
+      const result = await localChatLogic(message, history || [], user, db, addNotification);
       res.json(result);
     } catch (e) {
-      console.error('AI chat error:', e);
-      res.status(500).json({ error: 'Sorry, the AI is temporarily unavailable. Please try again.' });
+      console.error('Local chat error:', e);
+      res.status(500).json({ error: 'Sorry, the automated assistant encountered an error. Please try again.' });
     }
   });
 };
