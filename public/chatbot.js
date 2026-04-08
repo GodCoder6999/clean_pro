@@ -124,7 +124,9 @@
     renderMsg(text, role) {
       const d = document.createElement('div');
       d.className = `cp-msg cp-msg-${role}`;
-      const html = this.fmt(text);
+      // Strip hidden state tags before display
+      const displayText = text.replace(/<!--state:.*?-->/g, '');
+      const html = this.fmt(displayText);
       d.innerHTML = role === 'assistant'
         ? `<div class="cp-msg-ava">🤖</div><div class="cp-bubble">${html}</div>`
         : `<div class="cp-bubble">${html}</div>`;

@@ -400,20 +400,33 @@ async function localChatLogic(message, history, user, db, addNotification) {
       if (!match) return { response: "Invalid time format. Please reply exactly like \`14:00\`. <!--state:" + JSON.stringify(state) + "-->", actionPerformed: false };
 
       const new_state = { ...state, step: 'enter_address', time: match[1] };
-      const resMsg = `Scheduled for ${match[1]}.\n\nFinally, please type the **Address** for the cleaning: <!--state:${JSON.stringify(new_state)}-->`;
+      let resMsg = `Scheduled for ${match[1]}.\n\nFinally, please type the **Address** for the cleaning:`;
+      if (user.address) {
+        resMsg += `\n*(Or just type \`use mine\` to use your saved address: **${user.address}**)*`;
+      }
+      resMsg += ` <!--state:${JSON.stringify(new_state)}-->`;
       return { response: resMsg, actionPerformed: false };
     }
 
     if (state.step === 'enter_address') {
       if (m.length < 3) return { response: "Please provide a valid address. <!--state:" + JSON.stringify(state) + "-->", actionPerformed: false };
       
+      let finalAddress = message.trim();
+      if (m.includes('use mine') || m.includes('my address')) {
+        if (user.address) {
+          finalAddress = user.address;
+        } else {
+          return { response: "You don't have a saved address! Please manually type out your address below: <!--state:" + JSON.stringify(state) + "-->", actionPerformed: false };
+        }
+      }
+
       // Execute the Booking!
       const raw = await executeTool('create_booking', {
         service_id: state.service_id,
         worker_id: state.worker_id,
         scheduled_date: state.date,
         scheduled_time: state.time,
-        address: message.trim()
+        address: finalAddress
       }, user, db, addNotification);
       
       return { response: formatToolResult('create_booking', raw), actionPerformed: true };
